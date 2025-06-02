@@ -27,7 +27,8 @@ DAMAGE.
 */
 /**
  * @file publisher.hpp
- * ＠BRIEF Providing classes to publish a periodic / or single -shot message
+ * @brief Provides classes to publish periodic or one-time messages, among other things
+ * @auther Fukukazu Kawata
  *
  *
  */
@@ -43,9 +44,9 @@ DAMAGE.
 namespace test_utils {
 
 /**
- * @BRIEF one -shot / periodic publishing class
+ * @brief Class for performing one-time or periodic publications
  *
- * @TPARAM MSGGEN Message generator
+ * @tparam MsgGen Message generator
  *
  */
 template <class MsgGen>
@@ -54,12 +55,12 @@ class Publisher {
   using SharedPtr = std::shared_ptr<Publisher>;
 
   /**
-   * @BRIEF constructor
+   * @brief Constructor
    *
-   * @param NH node handle
-   * @Param Topic_name The name of the message to be published
-   * @param queue_size publisher queue size
-   * @Param msg_gen Message generator reference count with count
+   * @param nh Node handle
+   * @param topic_name Name of the message to be published
+   * @param queue_size Queue size of the Publisher
+   * @param msg_gen Reference counted pointer to the message generator
    */
   Publisher(rclcpp::Node::SharedPtr node, const std::string& topic_name, const uint32_t queue_size,
             const typename MsgGen::SharedPtr& msg_gen)
@@ -72,12 +73,12 @@ class Publisher {
   }
 
   /**
-   * @BRIEF Destrist
+   * @brief Destructor
    */
   virtual ~Publisher() = default;
 
   /**
-   * @BRIEF Publish only once
+   * @brief Publish only once
    */
   void PublishOnce() {
     typename MsgGen::MsgType msg = msg_gen_->Generate();
@@ -86,9 +87,9 @@ class Publisher {
 
 
   /**
-   * Issuing a message periodically
+   * @brief Periodically issue messages
    *
-   * @Param Rate_hz frequency (Hz)
+   * @param rate_hz Frequency (Hz)
    */
   void PublishPeriodically(const double rate_hz) {
     if (rate_hz < std::numeric_limits<double>::epsilon()) {
@@ -101,7 +102,7 @@ class Publisher {
   }
 
   /**
-   * Ends publishing
+   * @brief End publication
    */
   void StopPublishing() {
     cyclic_publish_timer_->cancel();
@@ -109,18 +110,18 @@ class Publisher {
   }
 
   /**
-   * Check if there is any subscriber at the @bRIEF topic and return it
+   * @brief Check and return whether there is at least one subscriber to the topic
    *
-   * Whether there is even one subscriber to the topic topic
+   * @return Whether there is at least one subscriber to the topic
    */
   bool IsSubscribed() const { return pub_->get_subscription_count() != 0; }
 
   /**
-   * Check if there is any subscriber at the @bRIEF topic and return it (specified time, maximum waiting)
+   * @brief Check and return whether there is at least one subscriber to the topic (wait for at most the specified time)
    *
-   * @param Wait_sec Standby Time (SEC)
+   * @param wait_sec Waiting time (sec)
    *
-   * Whether there is even one subscriber to the topic topic
+   * @return Whether there is at least one subscriber to the topic
    */
   bool IsSubscribed(const double wait_sec) const {
     return WaitUntil(

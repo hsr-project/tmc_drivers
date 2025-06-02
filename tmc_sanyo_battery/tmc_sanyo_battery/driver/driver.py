@@ -1,37 +1,35 @@
 #!/usr/bin/env python
-'''
-Copyright (c) 2024 TOYOTA MOTOR CORPORATION
-All rights reserved.
-Redistribution and use in source and binary forms, with or without
-modification, are permitted (subject to the limitations in the disclaimer
-below) provided that the following conditions are met:
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-* Neither the name of the copyright holder nor the names of its contributors may be used
-  to endorse or promote products derived from this software without specific
-  prior written permission.
-NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
-LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGE.
-'''
+# Copyright (c) 2024 TOYOTA MOTOR CORPORATION
+# All rights reserved.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted (subject to the limitations in the disclaimer
+# below) provided that the following conditions are met:
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+# * Neither the name of the copyright holder nor the names of its contributors may be used
+#   to endorse or promote products derived from this software without specific
+#   prior written permission.
+# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+# LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+# OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
 # vim: fileencoding=utf-8 :
 u"""Sanyo Electric Battery Communication Driver
 
-Based on the communication specification [1] _, the battery and the communication are performed to get the information.
+Communicate with the battery and retrieve information based on the communication specification [1].
 
-.. [1] For bicycles 4 average 5th communication specification ver.1.0
+.. [1] Bicycle 4-in-5 Communication Specification Ver.1.0
 
 """
 
@@ -64,12 +62,12 @@ class DeviceOpenError(BatteryError):
 
 
 def checksum(seq):
-    u"""Checksum calculation
+    u"""Checksum Calculation
 
-    Calculate the 2nd of 2 bytes in the Japanese sum of the handed array
+    Calculate the two's complement of the lower byte of the sum of the passed array
 
     Args:
-        SEQ (bytes): Checksam calculated bytes
+        seq (bytes): Byte sequence for checksum calculation
     """
     if sys.version_info.major == 3:
         return struct.pack("<q", -sum(seq))[0]
@@ -79,12 +77,12 @@ def checksum(seq):
 
 @contextlib.contextmanager
 def connect(device_name, baudrate, timeout=0.1):
-    u"""Open the device and return the Connection object that holds it.
+    u"""Open the device and return a Connection object holding it.
 
-    It is premised that it is used in with statement.
+    Intended to be used with a with statement.
 
     Args:
-        Device_name (str): Device file name
+        device_name (str): Device file name
     """
     port = serial.Serial(port=device_name,
                          baudrate=baudrate,
@@ -99,7 +97,7 @@ def connect(device_name, baudrate, timeout=0.1):
 
 
 def default_status():
-    u"""Return the DICT with the initial value of the batterystore"""
+    u"""Fill the dict with initial battery status values and return"""
     status = {}
     status['battery_level'] = 0.0
     status['full_charge_capacity'] = 0.0
@@ -119,10 +117,10 @@ def default_status():
 
 
 def read_packet(data):
-    u"""Analyze the receiving packet and return the DICT with a battery station
+    u"""Parse the received packets and return a dict containing the battery status
 
     Args:
-        Data (Bytes): Byte column of inbox
+        data (bytes): Byte sequence of the received packet
     """
     fields = struct.unpack("<BBBBHHhHBBBBBBB", data)
     if fields[0:4] != (0xFF, 0xFF, 0x0E, 0xD0):
@@ -159,7 +157,7 @@ class Connection(object):
     u"""Serial communication connection with the battery pack
 
     Args:
-        PORT (FileLike): File Like Budget connected to the battery pack
+        port (filelike): File-like object connected to the battery pack
     """
 
     def __init__(self, filelike):
@@ -170,11 +168,11 @@ class Connection(object):
             self._last_updated = time.clock()
 
     def read(self):
-        u"""Communicate with the battery pack and get the current state.
+        u"""Communicate with the battery pack and obtain the current status.
 
         TODO: プロトコル仕様を書いておく
         """
-        # It is necessary to open 0.1Sec or more between transmission and reception (see specifications)
+        # There needs to be at least a 0.1 second gap between each transmission and reception (refer to the specification)
         if sys.version_info.major == 3:
             now = time.process_time()
         else:
@@ -186,7 +184,7 @@ class Connection(object):
 
         request = bytearray([0xFF, 0xFF, 0x00, 0xB0, 0x50])
         self._filelike.write(request)
-        # Discard more for garbage data measures
+        # Take extra garbage data into account and discard
         data = self._filelike.read(4096)
         if len(data) < 19:
             raise TimeoutError(

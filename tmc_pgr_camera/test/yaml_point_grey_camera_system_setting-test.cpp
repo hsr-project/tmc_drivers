@@ -1,0 +1,623 @@
+/*
+Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted (subject to the limitations in the disclaimer
+below) provided that the following conditions are met:
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+* Neither the name of the copyright holder nor the names of its contributors may be used
+  to endorse or promote products derived from this software without specific
+  prior written permission.
+NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+*/
+/// @brief      Test for loading configuration files of Point Grey camera system
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
+#include <boost/format.hpp>
+#include <gtest/gtest.h>
+
+#include "tmc_pgr_camera/yaml_point_grey_camera_system_setting.hpp"
+
+namespace {
+
+// Default file used for loading configuration files
+const char* kDefaultConfigFileName = "test/config/default.yml";
+
+// Camera serial number of the default configuration file
+const int32_t kDefaultSerialNumber0 = 13442704;
+const int32_t kDefaultSerialNumber1 = 13442617;
+
+// Name of a non-existent file
+const char* kInvalidFilePath = "none";
+
+// Filename used in serial number acquisition test
+const char* kGetSerialNumbersNormalTestFileName = "test/config/get_serial_numbers_normal.yml";
+
+// Filename used in serial number acquisition error test
+const char* kGetSerialNumbersAbnormalTestFileName = "test/config/get_serial_numbers_abnormal_%02d.yml";
+
+// Number of files used in serial number acquisition error test
+const int32_t kGetSerialNumbersAbnormalTestNumberOfFiles = 5;
+
+// Filename used in camera property acquisition error test
+const char* kGetPropertiesAbnormalTestFileName = "test/config/get_properties_abnormal_%02d.yml";
+
+// Number of files used in camera property acquisition error test
+const int32_t kGetPropertiesAbnormalTestNumberOfFiles = 2;
+
+// Filename used in frame rate acquisition error test
+const char* kGetFrameRateAbnormalTestFileName = "test/config/get_frame_rate_abnormal_%02d.yml";
+
+// Number of files used in frame rate acquisition error test
+const int32_t kGetFrameRateAbnormalTestNumberOfFiles = 2;
+
+// Filename used in video mode acquisition error test
+const char* kGetVideoModeAbnormalTestFileName = "test/config/get_video_mode_abnormal_%02d.yml";
+
+// Number of files used in video mode acquisition error test
+const int32_t kGetVideoModeAbnormalTestNumberOfFiles = 2;
+
+// Filename used in Format7 settings acquisition error test
+const char* kGetFormat7SettingAbnormalTestFileName = "test/config/get_format7_setting_abnormal_%02d.yml";
+
+// Number of files used in Format7 settings acquisition error test
+const int32_t kGetFormat7SettingAbnormalTestNumberOfFiles = 15;
+
+// Filename used in software demosaicing acquisition error test
+const char* kGetSoftDemosaicingAbnormalTestFileName = "test/config/get_soft_demosaicing_abnormal_%02d.yml";
+
+// Number of files used in software demosaicing acquisition error test
+const int32_t kGetSoftDemosaicingAbnormalTestNumberOfFiles = 2;
+
+// Filename used in software trigger acquisition error test
+const char* kIsSoftwareTriggerEnabledAbnormalTestFileName = "test/config/is_software_trigger_enabled_abnormal_%02d.yml";
+
+// Number of files used in software trigger acquisition error test
+const int32_t kIsSoftwareTriggerEnabledAbnormalTestNumberOfFiles = 1;
+
+// Filename used in self trigger acquisition error test
+const char* kIsSelfTriggerEnabledAbnormalTestFileName = "test/config/is_self_trigger_enabled_abnormal_%02d.yml";
+
+// Number of files used in self trigger acquisition error test
+const int32_t kIsSelfTriggerEnabledAbnormalTestNumberOfFiles = 1;
+
+// Filename used in self trigger settings acquisition error test
+const char* kGetSelfTriggerSettingsAbnormalTestFileName = "test/config/get_self_trigger_settings_abnormal_%02d.yml";
+
+// Number of files used in self trigger settings acquisition error test
+const int32_t kGetSelfTriggerSettingsAbnormalTestNumberOfFiles = 8;
+
+// Filename used in trigger mode settings acquisition test
+const char* kGetTriggerModeNormalTestFileName = "test/config/get_trigger_mode_normal_%02d.yml";
+
+// Filename used in trigger mode settings acquisition error test
+const char* kGetTriggerModeAbnormalTestFileName = "test/config/get_trigger_mode_abnormal_%02d.yml";
+
+// Number of files used in trigger mode settings acquisition error test
+const int32_t kGetTriggerModeAbnormalTestNumberOfFiles = 2;
+
+// Filename used in trigger delay settings acquisition error test
+const char* kGetTriggerDelayAbnormalTestFileName = "test/config/get_trigger_delay_abnormal_%02d.yml";
+
+// Number of files used in trigger delay settings acquisition error test
+const int32_t kGetTriggerDelayAbnormalTestNumberOfFiles = 1;
+
+// Filename used in RGB conversion flag acquisition error test
+const char* kGetImageTypeAbnormalTestFileName = "test/config/get_image_type_abnormal_%02d.yml";
+
+// Number of files used in RGB conversion flag acquisition error test
+const int32_t kGetImageTypeAbnormalTestNumberOfFiles = 1;
+
+// Check if parameter combinations are valid
+const char* kCheckValidParamCombinationFileName = "test/config/check_valid_param_combination_%02d.yml";
+
+// 3.3V output settings acquisition confirmation
+const char* const kCheckOutputVoltageSettingFileName = "test/config/get_output_voltage_%02d.yml";
+
+}  // anonymous namespace
+
+namespace tmc_pgr_camera {
+
+/// @brief Test fixture for loading configuration files of Point Grey camera system
+class YamlPointGreyCameraSystemSettingTest : public testing::Test {
+ protected:
+  /// @brief Perform marker detection from test images
+  static void SetUpTestCase() {
+    ASSERT_NO_THROW(s_default_setting.reset(new YamlPointGreyCameraSystemSetting(
+      kDefaultConfigFileName)))
+          << "Failed to read setting file. Path: "
+          << std::filesystem::absolute(kDefaultConfigFileName);
+  }
+
+  // Default configuration file
+  static std::shared_ptr<YamlPointGreyCameraSystemSetting> s_default_setting;
+};
+
+std::shared_ptr<YamlPointGreyCameraSystemSetting> YamlPointGreyCameraSystemSettingTest::s_default_setting;
+
+/// @brief Confirm failure with a non-loadable configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, ReadAbnormal) {
+  // Load a non-existent file
+  ASSERT_FALSE(std::filesystem::exists(kInvalidFilePath));
+  ASSERT_ANY_THROW(YamlPointGreyCameraSystemSetting file(kInvalidFilePath));
+}
+
+/// @brief Load serial number from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetSerialNumbersNormal) {
+  std::vector<uint32_t> serial_numbers;
+  ASSERT_NO_THROW(serial_numbers = s_default_setting->GetSerialNumbers());
+
+  // Number of cameras is two
+  ASSERT_EQ(2, serial_numbers.size());
+
+  // Serial number is being loaded correctly
+  ASSERT_EQ(kDefaultSerialNumber0, serial_numbers.at(0));
+  ASSERT_EQ(kDefaultSerialNumber1, serial_numbers.at(1));
+
+  // Camera set as master comes first
+  // Here, the second camera is set as the master to confirm if the order is reversed
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(
+      kGetSerialNumbersNormalTestFileName)));
+  ASSERT_NO_THROW(serial_numbers = setting->GetSerialNumbers());
+  ASSERT_EQ(kDefaultSerialNumber1, serial_numbers.at(0));
+  ASSERT_EQ(kDefaultSerialNumber0, serial_numbers.at(1));
+}
+
+/// @brief Unable to load serial number correctly from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetSerialNumbersAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Key cameras does not exist
+  // 01: Subordinate cameras is not an array
+  // 02: Camera ID does not exist
+  // 03: Camera ID is not a numeric value
+  // 04: Value of master setting is not a boolean
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetSerialNumbersAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+           (boost::format(kGetSerialNumbersAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetSerialNumbers()) << "Path: " << file;
+  }
+}
+
+/// @brief Load properties from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetPropertiesNormal) {
+  std::vector<FlyCapture2::Property> properties;
+  ASSERT_NO_THROW(properties = s_default_setting->GetProperties());
+
+  // Number of properties is six
+  ASSERT_EQ(6, properties.size());
+  for (int32_t i = 0; i < properties.size(); ++i) {
+    const FlyCapture2::Property& property = properties.at(i);
+    switch (property.type) {
+      case FlyCapture2::SHARPNESS:
+        // Are properties being loaded correctly?
+        ASSERT_DOUBLE_EQ(1024.0, property.absValue);
+        ASSERT_FALSE(property.absControl);
+        ASSERT_EQ(0, property.valueA);
+        ASSERT_EQ(0, property.valueB);
+        ASSERT_FALSE(property.onOff);
+        ASSERT_FALSE(property.autoManualMode);
+        ASSERT_TRUE(property.onePush);
+        break;
+
+      case FlyCapture2::WHITE_BALANCE:
+        ASSERT_EQ(570, property.valueA);
+        ASSERT_EQ(810, property.valueB);
+        ASSERT_TRUE(property.onOff);
+        ASSERT_TRUE(property.autoManualMode);
+        ASSERT_FALSE(property.onePush);
+        break;
+    }
+  }
+}
+
+/// @brief Confirm failure in loading properties from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetPropertiesAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Key name of non-existent property
+  // 01: Key name for property setting contains non-existent items
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetPropertiesAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kGetPropertiesAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetProperties()) << "Path: " << file;
+  }
+}
+
+/// @brief Load frame rate from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetFrameRateNormal) {
+  std::optional<std::pair<FlyCapture2::FrameRate, float> > frame_rate;
+
+  // Format7 disabled
+  ASSERT_NO_THROW(frame_rate = s_default_setting->GetFrameRate(FlyCapture2::VIDEOMODE_640x480Y8));
+  ASSERT_TRUE((bool)frame_rate);
+  ASSERT_EQ(FlyCapture2::FRAMERATE_7_5, frame_rate->first);
+  ASSERT_FLOAT_EQ(7.5, frame_rate->second);
+
+  // Format7 enabled
+  ASSERT_NO_THROW(frame_rate = s_default_setting->GetFrameRate(FlyCapture2::VIDEOMODE_FORMAT7));
+  ASSERT_TRUE((bool)frame_rate);
+  ASSERT_EQ(FlyCapture2::FRAMERATE_FORMAT7, frame_rate->first);
+  ASSERT_FLOAT_EQ(7.5, frame_rate->second);
+}
+
+/// @brief Failure in loading frame rate from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetFrameRateAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file (format7 disabled)?
+  // 00: Unsettable frame rate value
+  // 01: Frame rate value is not a number (string, etc.)
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetFrameRateAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kGetFrameRateAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetFrameRate(FlyCapture2::VIDEOMODE_640x480Y8)) << "Path: " << file;
+  }
+}
+
+/// @brief Load video mode from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetVideoModeNormal) {
+  std::optional<FlyCapture2::VideoMode> video_mode;
+  ASSERT_NO_THROW(video_mode = s_default_setting->GetVideoMode());
+  ASSERT_TRUE((bool)video_mode);
+  ASSERT_EQ(FlyCapture2::VIDEOMODE_FORMAT7, *video_mode);
+}
+
+/// @brief Failure in loading video mode from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetVideoModeAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Invalid video mode
+  // 01: Video mode is not a string
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetVideoModeAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kGetVideoModeAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetVideoMode()) << "Path: " << file;
+  }
+}
+
+/// @brief Load Format7 settings from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetFormat7SettingNormal) {
+  std::optional<FlyCapture2::Format7ImageSettings> format7_setting;
+  ASSERT_NO_THROW(format7_setting = s_default_setting->GetFormat7Setting());
+  ASSERT_TRUE((bool)format7_setting);
+  ASSERT_EQ(0, static_cast<int32_t>(format7_setting->mode));
+  ASSERT_EQ(1280, format7_setting->width);
+  ASSERT_EQ(960, format7_setting->height);
+  ASSERT_EQ(8, format7_setting->offsetX);
+  ASSERT_EQ(2, format7_setting->offsetY);
+  ASSERT_EQ(FlyCapture2::PIXEL_FORMAT_RAW8, format7_setting->pixelFormat);
+}
+
+/// @brief Failure in loading Format7 settings from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetFormat7SettingAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Key mode does not exist
+  // 01: Value of mode is a string
+  // 02: Value of mode is out of range (-1)
+  // 03: Value of mode is out of range (32)
+  // 04: Key width does not exist
+  // 05: Value of width is a string
+  // 06: Key height does not exist
+  // 07: Value of height is a string
+  // 08: Key offsetX does not exist
+  // 09: Value of offsetX is a string
+  // 10: Key offsetY does not exist
+  // 11: Value of offsetY is a string
+  // 12: Key pixelFormat does not exist
+  // 13: Value of pixelFormat is numeric
+  // 14: Unsettable non-existent string value of pixelFormat
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetFormat7SettingAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+           (boost::format(kGetFormat7SettingAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetFormat7Setting()) << "Path: " << file;
+  }
+}
+
+/// @brief Load software demosaicing from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetSoftDemosaicingNormal) {
+  std::optional<FlyCapture2::ColorProcessingAlgorithm> soft_demosaicing;
+  ASSERT_NO_THROW(soft_demosaicing = s_default_setting->GetSoftDemosaicing());
+  ASSERT_TRUE((bool)soft_demosaicing);
+  ASSERT_EQ(FlyCapture2::EDGE_SENSING, *soft_demosaicing);
+}
+
+/// @brief Failure in loading software demosaicing from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetSoftDemosaicingAbormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Setting value is numeric
+  // 01: Non-existent string value
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetSoftDemosaicingAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+           (boost::format(kGetSoftDemosaicingAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetSoftDemosaicing()) << "Path: " << file;
+  }
+}
+
+/// @brief Load software trigger from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, IsSoftwareTriggerEnabledNormal) {
+  bool enabled = true;
+  ASSERT_NO_THROW(enabled = s_default_setting->IsSoftwareTriggerEnabled());
+  ASSERT_FALSE(enabled);
+}
+
+/// @brief Failure in loading software trigger from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, IsSoftwareTriggerEnabledAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Setting value is a string
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kIsSoftwareTriggerEnabledAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kIsSoftwareTriggerEnabledAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->IsSoftwareTriggerEnabled()) << "Path: " << file;
+  }
+}
+
+/// @brief Load self trigger from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, IsSelfTriggerEnabledNormal) {
+  bool enabled = false;
+  ASSERT_NO_THROW(enabled = s_default_setting->IsSelfTriggerEnabled());
+  ASSERT_TRUE(enabled);
+}
+
+/// @brief Failure in loading self trigger from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, IsSelfTriggerEnabledAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Setting value is a string
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kIsSelfTriggerEnabledAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kIsSelfTriggerEnabledAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->IsSelfTriggerEnabled()) << "Path: " << file;
+  }
+}
+
+/// @brief Load self trigger settings from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetSelfTriggerSettingsNormal) {
+  std::optional<SelfTriggerSettings> trigger_settings;
+  ASSERT_NO_THROW(trigger_settings = s_default_setting->GetSelfTriggerSettings());
+  ASSERT_TRUE((bool)trigger_settings);
+  ASSERT_EQ(0, trigger_settings->in_io);
+  ASSERT_EQ(1, trigger_settings->out_io);
+  ASSERT_EQ(0x040000400, trigger_settings->pulse_figure);
+  ASSERT_EQ(0x01, trigger_settings->number_of_pulse);
+}
+
+/// @brief Failure in loading self trigger settings from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetSelfTriggerSettingsAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Key in_io does not exist
+  // 01: Value of in_io is a string
+  // 02: Key out_io does not exist
+  // 03: Value of out_io is a string
+  // 04: Key pulse_figure does not exist
+  // 05: Value of pulse_figure is a string
+  // 06: Key number_of_pulse does not exist
+  // 07: Value of number_of_pulse is a string
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetSelfTriggerSettingsAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kGetSelfTriggerSettingsAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetSelfTriggerSettings()) << "Path: " << file;
+  }
+}
+
+/// @brief Load trigger mode settings from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetTriggerModeNormal) {
+  std::optional<FlyCapture2::TriggerMode> trigger_mode;
+  ASSERT_NO_THROW(trigger_mode = s_default_setting->GetTriggerMode());
+  ASSERT_TRUE((bool)trigger_mode);
+  ASSERT_EQ(true, trigger_mode->onOff);
+  ASSERT_EQ(0, static_cast<int32_t>(trigger_mode->mode));
+  ASSERT_EQ(0, trigger_mode->parameter);
+  ASSERT_EQ(0, trigger_mode->source);
+
+  // 00: Value of source is applied with self trigger on
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  std::filesystem::path file =
+      std::filesystem::absolute(
+          (boost::format(kGetTriggerModeNormalTestFileName) % 0).str());
+  ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+  ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+  ASSERT_NO_THROW(trigger_mode = setting->GetTriggerMode()) << "Path: " << file;
+  ASSERT_TRUE((bool)trigger_mode) << "Path: " << file;
+  ASSERT_EQ(1, trigger_mode->source) << "Path: " << file;
+
+  // 01: Software trigger on
+  file = std::filesystem::absolute(
+      (boost::format(kGetTriggerModeNormalTestFileName) % 1).str());
+  ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+  ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+  ASSERT_NO_THROW(trigger_mode = setting->GetTriggerMode()) << "Path: " << file;
+  ASSERT_TRUE((bool)trigger_mode) << "Path: " << file;
+  ASSERT_EQ(1, trigger_mode->parameter) << "Path: " << file;
+  ASSERT_EQ(7, trigger_mode->source) << "Path: " << file;
+
+  // 02: External trigger
+  file = std::filesystem::absolute(
+      (boost::format(kGetTriggerModeNormalTestFileName) % 2).str());
+  ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+  ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+  ASSERT_NO_THROW(trigger_mode = setting->GetTriggerMode()) << "Path: " << file;
+  ASSERT_TRUE((bool)trigger_mode) << "Path: " << file;
+  ASSERT_EQ(0, trigger_mode->parameter) << "Path: " << file;
+  ASSERT_EQ(0, trigger_mode->source) << "Path: " << file;
+}
+
+/// @brief Failure in loading trigger mode settings from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetTriggerModeAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Self trigger is on, but no self trigger io settings
+  // 01: Inappropriate key exists
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetTriggerModeAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kGetTriggerModeAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetTriggerMode()) << "Path: " << file;
+  }
+}
+
+/// @brief Load trigger delay settings from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetTriggerDelayNormal) {
+  std::optional<FlyCapture2::TriggerDelay> trigger_delay;
+  ASSERT_NO_THROW(trigger_delay = s_default_setting->GetTriggerDelay());
+  ASSERT_TRUE((bool)trigger_delay);
+  ASSERT_DOUBLE_EQ(5.0, trigger_delay->absValue);
+  ASSERT_EQ(FlyCapture2::TRIGGER_DELAY, trigger_delay->type);
+  ASSERT_FALSE(trigger_delay->onOff);
+  ASSERT_TRUE(trigger_delay->absControl);
+}
+
+/// @brief Failure in loading trigger delay settings from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetTriggerDelayAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Inappropriate key exists
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetTriggerDelayAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kGetTriggerDelayAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetTriggerDelay()) << "Path: " << file;
+  }
+}
+
+/// @brief Load RGB conversion flag from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetImageTypeNormal) {
+  std::optional<ImageType> image_type;
+  ASSERT_NO_THROW(image_type = s_default_setting->GetImageType());
+  ASSERT_TRUE((bool)image_type);
+  ASSERT_TRUE(*image_type == kRgbImage);
+}
+
+/// @brief Failure in loading RGB conversion flag from configuration file
+TEST_F(YamlPointGreyCameraSystemSettingTest, GetImageTypeAbnormal) {
+  // Does it throw an exception when there's a contradiction in configuration file?
+  // 00: Value is a string instead of Boolean
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  for (int32_t i = 0; i < kGetImageTypeAbnormalTestNumberOfFiles; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kGetImageTypeAbnormalTestFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetImageType()) << "Path: " << file;
+  }
+}
+
+TEST_F(YamlPointGreyCameraSystemSettingTest, CheckValidParamCombination) {
+  // 0 - 8 Abnormality closed with self_trigger_io
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  int i = 0;
+  for (; i <= 8; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kCheckValidParamCombinationFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetSelfTriggerSettings()) << "Path: " << file;
+  }
+
+  // 9 - 12 Abnormality with inconsistency between self_trigger_io and trigger_mode
+  for (; i <= 12; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kCheckValidParamCombinationFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_NO_THROW(setting->GetSelfTriggerSettings()) << "Path: " << file;
+    ASSERT_ANY_THROW(setting->GetTriggerMode()) << "Path: " << file;
+  }
+
+  // 13 - 17 Normal case
+  for (; i < 17; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kCheckValidParamCombinationFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_NO_THROW(setting->GetSelfTriggerSettings()) << "Path: " << file;
+    ASSERT_NO_THROW(setting->GetTriggerMode()) << "Path: " << file;
+  }
+}
+
+TEST_F(YamlPointGreyCameraSystemSettingTest, CheckOutputVoltageSetting) {
+  // 0 - 1 Abnormal case
+  std::shared_ptr<YamlPointGreyCameraSystemSetting> setting;
+  int i = 0;
+  for (; i <= 1; ++i) {
+    std::filesystem::path file =
+        std::filesystem::absolute(
+            (boost::format(kCheckOutputVoltageSettingFileName) % i).str());
+    ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+    ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+    ASSERT_ANY_THROW(setting->GetOutputVoltageSetting()) << "Path: " << file;
+  }
+
+  // 2 Normal case
+  std::filesystem::path file =
+      std::filesystem::absolute(
+          (boost::format(kCheckOutputVoltageSettingFileName) % 2).str());
+  ASSERT_TRUE(std::filesystem::exists(file)) << "Path: " << file;
+  ASSERT_NO_THROW(setting.reset(new YamlPointGreyCameraSystemSetting(file.string())));
+  ASSERT_NO_THROW(setting->GetOutputVoltageSetting()) << "Path: " << file;
+}
+
+}  // end of namespace tmc_pgr_camera
+
+int main(int argc, char** argv) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

@@ -1,0 +1,6 @@
+parameter:
+  self_trigger_io:
+    in_io: 0
+    out_io: "test"
+    pulse_figure: 0x040000400
+    number_of_pulse: 0x01

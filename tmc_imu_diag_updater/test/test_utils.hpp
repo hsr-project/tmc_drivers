@@ -118,29 +118,29 @@ class DiagUpdaterNodeTest : public testing::Test {
 
   virtual ~DiagUpdaterNodeTest() = default;
 
-  // Test start every process
+  // Process at the start of each test
   void SetUp() override {
     diag_sub_.reset(new DiagSubscriber(node_, "diagnostics", 1));
-    // It's troublesome to bind every time, so I'll do it here
+    // Binding every time is troublesome, so do it here
     imu_is_subscribed_ = [this]() { return imu_pub_->IsSubscribed(3.0); };
     diag_is_advertised_ = [this]() { return diag_sub_->IsPublished(); };
     cache_length_greater_than_3_ = [this]() { return diag_sub_->GetCacheLength() > 3; };
   }
   rclcpp::Node::SharedPtr getNode() { return node_; }
 
-  // Testing every process
-  // -The end of Publish
-  // -Subscription ends
+  // Process at the end of each test
+  // - Publish completed
+  // - Subscription completed
   void TearDown() override {
     imu_pub_.reset();
     diag_sub_.reset();
   }
 
  protected:
-  // Access point to ROS function
+  // Access point to ROS functions
   rclcpp::Node::SharedPtr node_;
 
-  // Sending and receiving confirmation Utilities
+  // Utilities for send/receive confirmation
   std::function<bool()> imu_is_subscribed_;
   std::function<bool()> diag_is_advertised_;
   std::function<bool()> cache_length_greater_than_3_;

@@ -75,23 +75,23 @@ class ContiguousSameValueTest : public DiagUpdaterNodeTest, public ::testing::Wi
 INSTANTIATE_TEST_CASE_P(
     ValidateBehaviorWithParam, ContiguousSameValueTest,
     testing::Values(
-        // Since the test is retained, the result changes in the order of giving data.
-        // Test groups that gradually reduce the number of fluctuations that fluctuates and make an error when crossing the threshold.
+        // Since the test subject retains the data, the order in which the data is given changes the result
+        // Test group to gradually reduce the number of variable properties and confirm that it results in an error when crossing the threshold
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "xy", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "x", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "", 100 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },
-        // Is it possible to return to normal and go with another property?
+        // Temporarily return to normal and check if it works with a different property
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xy", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "x", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "", "xyz", 100 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },
-        // Is it possible to return to normal and stop the angle speed and acceleration?
+        // Temporarily return to normal and check if it works even when stopping the updates of angle velocity and acceleration
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xy", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xy", "xy", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "x", "xy", 100 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },
-        // Return to normal and make an error when you cross the continuous number threshold.
+        // Temporarily return to normal and confirm that an error occurs when crossing the continuous count threshold
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 0
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 1
@@ -99,7 +99,7 @@ INSTANTIATE_TEST_CASE_P(
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 3
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 4
         TestParam{ { "xyz", "", 1 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },  // 5(Error)
-        // Returning
+        // Ensure recovery
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } }));
 
 TEST_P(ContiguousSameValueTest, ValidateBehaviorWithParam) {

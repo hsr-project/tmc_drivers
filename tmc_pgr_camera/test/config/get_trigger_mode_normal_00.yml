@@ -1,0 +1,8 @@
+parameter:
+  trigger_mode: { mode: 0, onOff: on }
+  self_trigger: on
+  self_trigger_io:
+    in_io: 1
+    out_io: 1
+    pulse_figure: 0x040000400
+    number_of_pulse: 0x01

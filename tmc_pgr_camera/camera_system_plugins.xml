@@ -1,0 +1,5 @@
+<library path="tmc_pgr_camera_system_plugin">
+  <class name="tmc_pgr_camera/point_grey_camera_system" type="tmc_pgr_camera::CameraSystemPlugin<tmc_pgr_camera::PointGreyCameraSystem>" base_class_type="tmc_pgr_camera::ICameraSystemPluginBase">
+    <description>Camera system plugins.</description>
+  </class>
+</library>

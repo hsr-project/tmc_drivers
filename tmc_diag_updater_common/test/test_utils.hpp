@@ -36,7 +36,7 @@ DAMAGE.
 
 namespace test_utils {
 
-// Get a value corresponding to any key from the Values ​​property contained in Diag
+// Retrieve a value corresponding to any key from the values property contained in Diag
 double PickUpDiagValueOf(const std::string& key, const diagnostic_msgs::msg::DiagnosticStatus::_values_type& values) {
   for (const auto value : values) {
     if (key == value.key) {
@@ -50,7 +50,7 @@ double PickUpDiagValueOf(const std::string& key, const diagnostic_msgs::msg::Dia
   return std::numeric_limits<double>::quiet_NaN();
 }
 
-// Wait until the given conditions formula is achieved
+// Wait until the given condition is met
 bool WaitUntil(rclcpp::Node::SharedPtr node, std::function<bool()>& condition_function, double timeout_sec = 5.0) {
   if (!condition_function) {
     throw std::runtime_error("Function for waiting is empty.");
@@ -69,7 +69,7 @@ bool WaitUntil(rclcpp::Node::SharedPtr node, std::function<bool()>& condition_fu
   return false;
 }
 
-// Wait until timeout
+// Wait until the timeout
 bool WaitUntilTimuout(rclcpp::Node::SharedPtr node, double timeout_sec = 5.0) {
   const rclcpp::Time start_time = node->get_clock()->now();
   rclcpp::Rate rate(100.0);
@@ -163,7 +163,7 @@ class CyclicImuPublisher {
   IDummySensorTime::SharedPtr sensor_time_;
 };
 
-// Message_filters :: Cache is not used because it cannot be reached to itchy.
+// Do not use message_filters::Cache as it does not fulfill specific needs
 class DiagCacheSubscriber {
  public:
   using SharedPtr = std::shared_ptr<DiagCacheSubscriber>;

@@ -1,0 +1,4 @@
+parameter:
+  properties:
+    auto_exposure:
+      { valueA: 570, valueB: 810, test: A }

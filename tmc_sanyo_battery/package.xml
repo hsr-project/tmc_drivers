@@ -1,12 +1,12 @@
 <package format="3">
   <name>tmc_sanyo_battery</name>
-  <version>2.0.0</version>
+  <version>2.1.0</version>
   <description>Command and node to get status from SANYO battery packs</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
-
   <license>BSD 3-clause Clear License</license>
 
-  <author>Keisuke Takeshita</author>
+  <url type="website">None</url>
+
   <author>Yoshimi Iyoda</author>
 
   <exec_depend>diagnostic_msgs</exec_depend>

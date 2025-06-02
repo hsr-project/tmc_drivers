@@ -1,11 +1,10 @@
 <package format="3">
   <name>tmc_imu_diag_updater</name>
-  <version>2.0.0</version>
-  <description>The tmc_imu_diag_updater package</description>
+  <version>2.1.0</version>
+  <description>tmc_imu_diag_updater package</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
 
-  <author>Fukukazu Kawata</author>
-  <author>Hiroaki Yaguchi</author>
+  <author email="fukukazu_kawata_zb@mail.toyota.co.jp">Fukukazu Kawata</author>
 
   <license>BSD 3-clause Clear License</license>
 

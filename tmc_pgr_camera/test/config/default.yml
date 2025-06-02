@@ -1,0 +1,84 @@
+# Copyright (C) 2016 Toyota Motor Corporation
+
+# プラグイン設定
+plugin:
+  # package.xmlのexport内に記入されているカメラとして利用するプラグインを含んだtag名
+  plugin_export_tag_name: "tmc_pgr_camera"
+  # 利用するカメラプラグインの名前
+  plugin_name: "tmc_pgr_camera/point_grey_camera_system"
+
+# カメラの情報
+# カメラ名とカメラ固有の識別番号 (PGRの場合はカメラのシリアルナンバー)
+# ステレオの場合マスターの設定をする
+cameras:
+  - id: 13442704
+    master: true
+  - id: 13442617
+
+# カメラのパラメータ設定
+parameter:
+  # カメラマニュアルのパラメータを参照
+  properties:
+    brightness:
+      { absValue: 0.0, onOff: on, autoManualMode: off, onePush: on }
+    auto_exposure:
+      { absValue: 0.0, onOff: on, autoManualMode: off, onePush: off }
+    sharpness:
+      { absValue: 1024, onOff: off, autoManualMode: off, onePush: on }
+    white_balance:
+      { valueA: 570, valueB: 810, onOff: on, autoManualMode: on, onePush: off }
+    shutter:
+      { absValue: 20.0, onOff: on, autoManualMode: off, onePush: off }
+    gain:
+      { absValue: 0.0, onOff: on, autoManualMode: off, onePush: off }
+
+  # ビデオモード
+  video_mode: "format7"
+
+  # フレームレート
+  frame_rate: 7.5
+
+  # 画像サイズ(Format7対応)[pixel]
+  # カメラの最大解像度からoffsetを画像中心になるように指定する
+  # Chameleon CMLN-13S2Cの最大解像度は、1296*964
+  # modeは0から31まで
+  format7:
+    mode: 0
+    offsetX: 8
+    offsetY: 2
+    width: 1280
+    height: 960
+    pixelFormat: "raw8"
+
+  # ソフトウェアデモザイキング
+  # "default" "no_color_processing" "nearest_neighbor_fast" "edge_sensing"
+  # "hq_liner" "rigorous"
+  software_demosaicing: "edge_sensing"
+
+  # ソフトウェアトリガー(off:トリガーOFF,on:トリガーON)
+  software_trigger: off
+  # セルフトリガー(off:トリガーOFF,on:トリガーON)
+  self_trigger: on
+  # Flea2の場合は、in_io=2 out_io=3を指定する
+  # Chameleonの場合は、in_io=0 out_io=1を指定する
+  self_trigger_io:
+    in_io: 0
+    out_io: 1
+    pulse_figure: 0x040000400
+    number_of_pulse: 0x01
+    polarity: 0
+
+  # Blackfly 限定 3.3V出力設定
+  output_voltage: false
+
+  # トリガーモード
+  trigger_mode: { mode: 0, onOff: on }
+
+  # トリガーディレイ[s]
+  trigger_delay: { absValue: 5.0, onOff: off }
+
+  # RGB変換フラグ(on：RGB出力 off:モノクロ出力)
+  change_rgb_flag: on
+
+  # タイムアウト時間[ms]
+  grab_timeout: 1000

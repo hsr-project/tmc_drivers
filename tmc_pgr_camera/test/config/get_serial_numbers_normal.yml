@@ -1,0 +1,4 @@
+cameras:
+  - id: 13442704
+  - id: 13442617
+    master: true

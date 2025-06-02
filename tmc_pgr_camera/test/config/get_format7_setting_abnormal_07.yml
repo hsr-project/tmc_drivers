@@ -1,0 +1,8 @@
+parameter:
+  format7:
+    mode: 0
+    offsetX: 8
+    offsetY: 2
+    width: 1280
+    height: "test"
+    pixelFormat: "raw8"

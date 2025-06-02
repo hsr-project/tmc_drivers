@@ -1,0 +1,7 @@
+<library path="test_camera_system_plugin">
+  <class name="tmc_pgr_camera/dummy_camera_system_plugin"
+         type="tmc_pgr_camera::DummyCameraSystemPlugin"
+         base_class_type="tmc_pgr_camera::ICameraSystemPluginBase">
+    <description>Camera system plugins.</description>
+  </class>
+</library>

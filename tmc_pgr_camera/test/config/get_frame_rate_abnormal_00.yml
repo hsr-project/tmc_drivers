@@ -1,0 +1,3 @@
+parameter:
+  video_mode: "160x120yuv444"
+  frame_rate: 0.5

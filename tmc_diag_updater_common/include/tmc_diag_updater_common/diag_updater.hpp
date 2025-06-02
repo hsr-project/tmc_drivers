@@ -39,10 +39,10 @@ DAMAGE.
 
 namespace tmc_diag_updater_common {
 
-// Classes that make topics subscription, verification, and update diags
+// Class for subscribing, verifying, and updating diagnostics
 //
 // Topic reception events and verification events are independent
-// Because it was necessary to look down on the communication quality of the topic.
+// Needed to have an overview to verify communication quality of the topic
 template <class MsgPtr, class MsgType>
 class DiagUpdater {
  public:
@@ -54,7 +54,7 @@ class DiagUpdater {
       rclcpp::Node::SharedPtr node,
       std::function<typename verifier::Interface<MsgPtr>::SharedPtr(std::string, rclcpp::Node::SharedPtr)> creator_func)
       : node_(node) {
-    // Diagupdater settings
+    // Configuration of diagupdater
     std::string hardware_id;
     if (node_->has_parameter("hardware_id")) {
       hardware_id = node_->get_parameter("hardware_id").get_value<std::string>();
@@ -66,8 +66,8 @@ class DiagUpdater {
     diag_updater_->setHardwareID(hardware_id);
     diag_updater_->add(hardware_id + " topic status", this, &DiagUpdater::UpdateDiag);
 
-    // Creation of verifications
-    // Perth with Rosparam to generate multiple verification machines
+    // Creation of the verifier
+    // Parse rosparam to generate multiple verifiers
     std::vector<std::string> verifiers_list =
         node_->declare_parameter<std::vector<std::string>>("verifiers_list", std::vector<std::string>({}));
     if (verifiers_list.size() == 0) {
@@ -79,11 +79,11 @@ class DiagUpdater {
     }
     verifier_summaries_.resize(verifiers_list.size());
 
-    // It seems good to have the topic name and HardwareID together
+    // It is recommended to combine the topic name and hardwareid
     sub_ = node_->create_subscription<MsgType>(hardware_id, rclcpp::SensorDataQoS(),
                                                std::bind(&DiagUpdater::UpdateTopic, this, std::placeholders::_1));
 
-    // Set a verification event for the timer
+    // Set verification events on the timer
     const double sampling_hz = node_->declare_parameter<double>("sampling_hz", 200.0);
     if (sampling_hz <= std::numeric_limits<double>::epsilon()) {
       throw std::runtime_error("Specify positive value as sampling Hz");
@@ -106,10 +106,10 @@ class DiagUpdater {
     dst_stat.summary(initial_summary.first, initial_summary.second);
 
     for (auto verifier_summary : verifier_summaries_) {
-      // ERROR> Warn> OK is the level priority, the message is in the registration order
+      // Priority of levels is ERROR > WARN > OK, messages are in registration order
       dst_stat.mergeSummary(verifier_summary.first, verifier_summary.second);
     }
-    // Added verification result details, etc.
+    // Add details such as verification results
     for (auto verifier : verifiers_) {
       verifier->AddValues(dst_stat);
     }
@@ -129,11 +129,11 @@ class DiagUpdater {
   // Verification data buffer
   MsgPtr data_;
 
-  // Topic data validation and verification results
+  // Topic data verifier and verification results
   std::vector<typename verifier::Interface<MsgPtr>::SharedPtr> verifiers_;
   Summaries verifier_summaries_;
 
-  // DIAG update regular event issuance
+  // Regular event issuance for Diag updates
   rclcpp::TimerBase::SharedPtr cyclic_publish_timer_;
   rclcpp::Node::SharedPtr node_;
 };

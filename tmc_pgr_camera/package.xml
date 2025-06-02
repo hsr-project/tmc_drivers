@@ -1,0 +1,41 @@
+<package format="3">
+  <name>tmc_pgr_camera</name>
+  <version>2.1.0</version>
+  <description>Driver node for Point Grey Cameras.</description>
+  <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
+  <license>BSD 3-clause Clear License</license>
+  <url type="website" />
+  <author>Takahiro Furukawa</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <build_depend>boost</build_depend>
+  <build_depend>rclcpp</build_depend>
+  <build_depend>rclcpp_components</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>tmc_vision_msgs</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>compressed_image_transport</build_depend>
+  
+  <build_depend>pluginlib</build_depend>
+  <build_depend>yaml-cpp</build_depend>
+
+  <exec_depend>boost</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>tmc_vision_msgs</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>compressed_image_transport</exec_depend>
+  
+  <exec_depend>pluginlib</exec_depend>
+  <exec_depend>yaml-cpp</exec_depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

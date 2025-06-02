@@ -27,8 +27,9 @@ DAMAGE.
 */
 /**
  * @file generator.hpp
- * Providing a class to generate messages
- * @note If necessary, derive iGenerator
+ * @brief Provides a class for generating messages
+ * @auther Fukukazu Kawata
+ * @note Derive from IGenerator as needed
  *
  *
  */
@@ -41,7 +42,7 @@ DAMAGE.
 namespace test_utils {
 
 /**
- * Definition of interface for generating data
+ * @brief Definition of an interface for generating data
  *
  * @tparam T Some type
  */
@@ -49,7 +50,7 @@ template <class T>
 class IGenerator {
  public:
   using SharedPtr = std::shared_ptr<IGenerator>;
-  // Another name for Type_traits
+  // Alias for type_traits
   using MsgType = T;
   virtual ~IGenerator() = default;
 
@@ -57,9 +58,9 @@ class IGenerator {
 };
 
 /**
- * Blief generate fixed data
+ * @brief Generates fixed data
  *
- * The value was given at the time of initialization
+ * That value is the one given at initialization
  *
  * @tparam T Some type
  */
@@ -67,18 +68,18 @@ template <class T>
 class FixedGenerator : public IGenerator<T> {
  public:
   /**
-   * @bRIEF setting of initial values ​​(continued to be used)
+   * @brief Setting of the initial value (used continuously thereafter)
    *
-   * @Param Data initial value
+   * @param data Initial value
    */
   explicit FixedGenerator(const T& data) : data_(data) {}
 
   virtual ~FixedGenerator() = default;
 
   /**
-   * acquisition of @bRIEF data (fixed)
+   * @brief Obtain data (fixed)
    *
-   * Data set at the time of initialization
+   * @return Data set at initialization
    */
   T Generate() override { return data_; }
 
@@ -87,9 +88,9 @@ class FixedGenerator : public IGenerator<T> {
 };
 
 /**
- * generate STAMP according to the flow of time
+ * @brief Generates a Stamp that flows with time
  *
- * RCLCPP :: Time :: Now at the time of acquisition
+ * Will be rclcpp::Time::now at the time of acquisition
  */
 class ForwardStampGenerator : public IGenerator<rclcpp::Time> {
  public:
@@ -97,15 +98,15 @@ class ForwardStampGenerator : public IGenerator<rclcpp::Time> {
   virtual ~ForwardStampGenerator() = default;
 
   /**
-   * acquisition of @brew time (direction)
+   * @brief Obtain time (forward direction)
    *
-   * @return RCLCPP type time
+   * @return Time of RCLCPP type
    */
   rclcpp::Time Generate() override { return rclcpp::Clock(RCL_ROS_TIME).now(); }
 };
 
 /**
- * Birthburief generates a retrospective STAMP
+ * @brief Generates a reverted Stamp
  */
 class BackwardStampGenerator : public IGenerator<rclcpp::Time> {
  public:
@@ -113,9 +114,9 @@ class BackwardStampGenerator : public IGenerator<rclcpp::Time> {
   virtual ~BackwardStampGenerator() = default;
 
   /**
-   * acquisition of @brew time (reverse direction)
+   * @brief Obtain time (reverse direction)
    *
-   * @return RCLCPP type time
+   * @return Time of RCLCPP type
    */
   rclcpp::Time Generate() override {
     if (base_time_ == boost::none) {
@@ -130,11 +131,11 @@ class BackwardStampGenerator : public IGenerator<rclcpp::Time> {
 
 
 /**
- * Classes that generate and provide STAMP along with @bRIEF messages
+ * @brief Class that generates and provides both a message and a Stamp
  *
- * @tparam m rclcpp message type
+ * @tparam M RCLCPP message type
  *
- * Must be in the following property structure
+ * Needs to be in the following property structure
  *
  * msg.header.stamp
  */
@@ -142,10 +143,10 @@ template <class M>
 class StampAndMessageGenerator : public IGenerator<M> {
  public:
   /**
-   * @BRIEF STAMP Registration of generator
+   * @brief Registration of Stamp generator
    *
-   * RCLCPP message with @Param msg_gen header.stamp
-   * @Param STAMP_GEN RCLCPP :: Time type Generator (default is forwardstampgenerator)
+   * @param msg_gen RCLCPP message with header.stamp
+   * @param stamp_gen Generator of rclcpp::Time type (default is ForwardStampGenerator)
    */
   StampAndMessageGenerator(const typename IGenerator<M>::SharedPtr msg_gen,
                            const IGenerator<rclcpp::Time>::SharedPtr& stamp_gen = new ForwardStampGenerator())
@@ -160,7 +161,7 @@ class StampAndMessageGenerator : public IGenerator<M> {
   virtual ~StampAndMessageGenerator() = default;
 
   /**
-   * Begenerate @brew messages and give STAMP to it
+   * @brief Generates a message and attaches a Stamp to it
    *
    * @return RCLCPP message
    */

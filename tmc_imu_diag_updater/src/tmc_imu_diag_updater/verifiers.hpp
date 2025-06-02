@@ -38,13 +38,13 @@ DAMAGE.
 
 namespace tmc_imu_diag_updater {
 
-// Vertical namespace
+// Namespace for validators
 namespace verifier {
 
 using tmc_diag_updater_common::verifier::Interface;
 
-// Class to verify whether the angle speed / acceleration value is all 0
-// It was needed because Adi_driver did not publish a very valid value
+// Class to validate whether all angular velocity and acceleration values are zero
+// Necessary due to adi_driver rarely publishing valid values
 class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::Ptr> {
  public:
   static Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr Create(rclcpp::Node::SharedPtr node) {
@@ -60,7 +60,7 @@ class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::Ptr>
   }
 
   virtual void UpdateSummary(const sensor_msgs::msg::Imu::Ptr& stamped_msg) {
-    // If you can't find the value, judge that it's not the job of this class and do not update it.
+    // If unable to check up to the value, decide it's not this class's job, and don't update
     if (stamped_msg == nullptr) {
       return;
     }
@@ -71,7 +71,7 @@ class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::Ptr>
                                       actual_angular_velocity_.z,    actual_linear_acceleration_.x,
                                       actual_linear_acceleration_.y, actual_linear_acceleration_.z };
 
-    // Judgment is abnormal if all elements are within the specified value area
+    // Determine abnormal if all elements are within the specified value range
     for (auto value : iteratable) {
       if (value < -significant_threshold_ || significant_threshold_ < value) {
         this->SetAsOK();
@@ -79,7 +79,7 @@ class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::Ptr>
       }
     }
 
-    // At this point, judge that it does not contain a significant value
+    // At this point, judge that no significant values are included
     this->SetAs(DiagnosticStatus::ERROR, "Velocities and accelerations are zero");
   }
 
@@ -99,10 +99,10 @@ class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::Ptr>
   geometry_msgs::msg::Vector3 actual_linear_acceleration_;
 };
 
-// Class to verify that the same value is continuous
-// It was needed because the value of Adi_driver hardens (when USB connection is cut)
-// All property values ​​can harden, or in some cases
-// (I don't know which property value will solidify, but there was such a phenomenon)
+// Class to validate that the same values are not repeated in succession
+// Necessary due to occasions when adi_driver values are fixed (in case USB connection is disconnected)
+// All property values might be fixed or some might be
+// (Not knowing which property value gets fixed, such phenomenon occurred)
 class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::Ptr> {
  public:
   static Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr Create(rclcpp::Node::SharedPtr node) {
@@ -113,12 +113,12 @@ class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::Ptr> {
         new ContiguousSameValue(properties_num, contiguous_threshold));
   }
 
-  // If the specified number of properties harden in a continuous specified number of times, the error should be made as an error.
-  // -Secice of the number of properties: I don't know which property will solidify, so I decided to do it by number
-  // -Secice of continuous number: The probability that the same value is continuous will not be 0 even if it is normal, so we can set it.
-  //                       Set the parameter for that
-  //                       Since the confirmation cycle is usually set to exceed the receiving cycle, there is a possibility that the same value will be confirmed multiple times in a row.
-  //                       Therefore, it is recommended that you set this parameter sufficiently.
+  // If the specified number of properties are continuously fixed for the specified count, it's an error
+  // - Specification of the number of properties: Decided to use count since it's unknown which properties get fixed
+  // - Specification of continuous count: As the probability of the same value being repeated consecutively isn't zero even normally, made it configurable
+  // Set parameters for that
+  // It's common to set confirmation cycle beyond receiving cycle, so there's a possibility of confirming the same value multiple times consecutively
+  // Therefore, it's recommended to set this parameter sufficiently large
   ContiguousSameValue(const uint32_t property_num_threshold, const uint32_t contiguous_count_threshold)
       : property_num_threshold_(property_num_threshold),
         contiguous_count_threshold_(contiguous_count_threshold),
@@ -169,13 +169,13 @@ class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::Ptr> {
     static const int kPropertyNum = 6;
 
     std::optional<uint32_t> CalcSamePropertyNum(const sensor_msgs::msg::Imu& msg) {
-      // If there is no last price, return the invalid value
+      // Return an invalid value if there is no previous value
       if (prev_msg_ == std::nullopt) {
         prev_msg_ = msg;
         return std::nullopt;
       }
 
-      // Make an iterator to handle with for statement
+      // Create an iterator for processing with a for loop
       auto v = prev_msg_.value().angular_velocity;
       auto a = prev_msg_.value().linear_acceleration;
       const std::array<std::array<double, 2>, kPropertyNum> iteratable = { { { v.x, msg.angular_velocity.x },
@@ -196,7 +196,7 @@ class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::Ptr> {
     }
 
    private:
-    // Previous value for comparison
+    // Previous values for comparison
     std::optional<sensor_msgs::msg::Imu> prev_msg_;
   };
 
@@ -206,8 +206,8 @@ class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::Ptr> {
   SamePropertyCounter same_property_counter_;
 };
 
-// Class to verify whether the acceleration Norm at the time of start is within the threshold
-// It was needed because Adi_driver did not publish a very valid value
+// Class to validate whether the initial acceleration norm is within the threshold
+// Necessary due to adi_driver rarely publishing valid values
 class InitialAccelerationNorm : public Interface<sensor_msgs::msg::Imu::Ptr> {
  public:
   static Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr Create(rclcpp::Node::SharedPtr node) {
@@ -241,16 +241,16 @@ class InitialAccelerationNorm : public Interface<sensor_msgs::msg::Imu::Ptr> {
   void ResetSampleCount(std_msgs::msg::Empty::SharedPtr msg) { sample_count_ = 0; }
 
   virtual void UpdateSummary(const sensor_msgs::msg::Imu::Ptr& stamped_msg) {
-    // If you can't find the value, judge that it's not the job of this class and do not update it.
+    // If unable to check up to the value, decide it's not this class's job, and don't update
     if (stamped_msg == nullptr) {
       return;
     }
-    // If the number of verified topics reaches Sample Size, will not be updated
+    // Don't update when the number of validated topics reaches sample size
     if (sample_size_ <= sample_count_) {
       return;
     }
     sample_count_++;
-    // If the acceleration Norm exceeds the threshold, it is judged as abnormal
+    // Judge as abnormal if acceleration norm exceeds the threshold
     actual_linear_acceleration_ = stamped_msg->linear_acceleration;
     double acc_norm = sqrt(pow(actual_linear_acceleration_.x, 2.0) + pow(actual_linear_acceleration_.y, 2.0) +
                            pow(actual_linear_acceleration_.z, 2.0));
@@ -279,8 +279,8 @@ class InitialAccelerationNorm : public Interface<sensor_msgs::msg::Imu::Ptr> {
   rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr reset_count_sub_;
 };
 
-// Make an IMU verification
-// If you create a new interface derivation, add a branch here
+// Create IMU validator
+// Add branching here when creating a new Interface derivative
 Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr Create(std::string type, rclcpp::Node::SharedPtr node) {
   typename Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr ptr;
   if (type == "zero_velocity_and_acceleration") {

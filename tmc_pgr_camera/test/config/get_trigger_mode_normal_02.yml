@@ -1,0 +1,8 @@
+parameter:
+  self_trigger_io:
+    in_io: 0
+    out_io: 1
+    pulse_figure: 0
+    number_of_pulse: 0x01
+    polarity: 0
+  trigger_mode: { mode: 0, onOff: on }

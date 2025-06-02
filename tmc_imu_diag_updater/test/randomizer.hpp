@@ -28,6 +28,7 @@ DAMAGE.
 /**
  * @file randomizer.hpp
  * @brief This file contains randomizer for message properties.
+ * @auther Fukukazu Kawata
  *
  *
  */

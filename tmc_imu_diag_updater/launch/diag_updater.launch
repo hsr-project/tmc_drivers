@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="input_topic_name" default="imu/data_raw"/>
+  <arg name="sampling_hz" default="200.0"/>
+
+  <arg name="com_timeout_sec" default="5.0"/>
+  <arg name="expected_frame_id" default="imu"/>
+  <arg name="imu_significant_threshold" default="0.00001"/>
+  <arg name="warn_hz" default="80.0"/>
+  <arg name="error_hz" default="50.0"/>
+  <arg name="window_size_for_computing_rate" default="20"/>
+  <arg name="properties_num" default="6"/>
+  <arg name="contiguous_threshold" default="1"/>
+  <arg name="sample_size" default="100"/>
+  <arg name="acc_norm_min" default="9.0"/>
+  <arg name="acc_norm_max" default="10.5"/>
+
+  <node pkg="tmc_imu_diag_updater" type="tmc_imu_diag_updater_node" name="imu_diag_updater" output="screen">
+    <rosparam subst_value="true">
+      hardware_id: "$(arg input_topic_name)"
+      sampling_hz: $(arg sampling_hz)
+
+      verifiers:
+        - type: "disconnection"
+          timeout_sec: $(arg com_timeout_sec)
+        - type: "unexpected_rate"
+          warn_hz: $(arg warn_hz)
+          error_hz: $(arg error_hz)
+          window_size: $(arg window_size_for_computing_rate)
+        - type: "unexpected_frame_id"
+          expected_frame_id: "$(arg expected_frame_id)"
+        - type: "zero_velocity_and_acceleration"
+          significant_threshold: $(arg imu_significant_threshold)
+        - type: "contiguous_same_value"
+          properties_num: $(arg properties_num)
+          contiguous_threshold: $(arg contiguous_threshold)
+        - type: "initial_acceleration_norm"
+          sample_size: $(arg sample_size)
+          acc_norm_min: $(arg acc_norm_min)
+          acc_norm_max: $(arg acc_norm_max)
+    </rosparam>
+  </node>
+</launch>

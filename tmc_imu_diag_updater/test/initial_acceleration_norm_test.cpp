@@ -45,12 +45,12 @@ const char* const kName = "imu_diag_updater: imu topic status";
 const char* const kHardwareID = "imu";
 const char* const kResetTopic = "reset_sample_count";
 const char* const kErrMsg = "Initial Acceleration Norm is invalid";
-constexpr uint32_t kPubNum = 10;
-constexpr uint32_t kPubNumThd = 100;
-constexpr double kImuRate = 100.0;
-constexpr double kNormMin = 9.5;
-constexpr double kNormMax = 11.5;
-constexpr double kSigFig = 1e-15;
+constexpr uint32_t kPubNum = 10;      // Number of IMU publications
+constexpr uint32_t kPubNumThd = 100;  // Number of IMU publications (number of samples)
+constexpr double kImuRate = 100.0;    // IMU publish rate (hz)
+constexpr double kNormMin = 9.5;      // Lower threshold
+constexpr double kNormMax = 11.5;     // Upper threshold
+constexpr double kSigFig = 1e-15;     // Minimum value of effective digits in double (15)
 const std::array<std::string, 3> kPropertyNames{ "x", "y", "z" };
 
 enum Level {
@@ -92,7 +92,7 @@ class InitialAccelerationNormTest : public DiagUpdaterNodeTest, public ::testing
 INSTANTIATE_TEST_CASE_P(
     ValidateBehaviorWithParam, InitialAccelerationNormTest,
     testing::Values(
-        // NORM boundary value test
+        // Boundary value test for norm
         // norm_min - sig_fig < norm_min < norm_min + sig_fig
         TestParam{ { true, kNormMin - kSigFig, kPubNum, "z" }, { 1, Level::kError, kName, kErrMsg, kHardwareID } },
         TestParam{ { true, kNormMin, kPubNum, "z" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
@@ -101,13 +101,13 @@ INSTANTIATE_TEST_CASE_P(
         TestParam{ { true, kNormMax - kSigFig, kPubNum, "z" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { true, kNormMax, kPubNum, "z" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { true, kNormMax + kSigFig, kPubNum, "z" }, { 1, Level::kError, kName, kErrMsg, kHardwareID } },
-        // Normal (inside the sample) -> Abnormal (outside the sample)
+        // Normal (within sample) -> Abnormal (outside sample)
         TestParam{ { true, kNormMax, kPubNumThd, "z" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { false, kNormMax + kSigFig, kPubNum, "z" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
-        // Abnormal (inside the sample) -> Normal (outside the sample)
+        // Abnormal (within sample) -> Normal (outside sample)
         TestParam{ { true, kNormMax + kSigFig, kPubNumThd, "z" }, { 1, Level::kError, kName, kErrMsg, kHardwareID } },
         TestParam{ { false, kNormMax, kPubNum, "z" }, { 1, Level::kError, kName, kErrMsg, kHardwareID } },
-        // Sample_num boundary value test
+        // Boundary value test for sample_num
         // sample_num - 1
         TestParam{ { true, kNormMax, kPubNumThd - 1, "z" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { false, kNormMax + kSigFig, kPubNum, "z" }, { 1, Level::kError, kName, kErrMsg, kHardwareID } },
@@ -117,14 +117,14 @@ INSTANTIATE_TEST_CASE_P(
         // sample_num + 1
         TestParam{ { true, kNormMax, kPubNumThd + 1, "z" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { false, kNormMax + kSigFig, kPubNum, "z" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
-        // Is the diag updated by the sample reset?
+        // Check if diag updates on sample reset
         TestParam{ { true, kNormMax + kSigFig, kPubNumThd, "z" }, { 1, Level::kError, kName, kErrMsg, kHardwareID } },
         TestParam{ { false, kNormMax, kPubNum, "z" }, { 1, Level::kError, kName, kErrMsg, kHardwareID } },
         TestParam{ { true, kNormMax, kPubNum, "z" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
-        // Can an error be detected with the axis X?
+        // Check if error can be detected on axis x
         TestParam{ { true, kNormMax, kPubNum, "x" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { true, kNormMax + kSigFig, kPubNum, "x" }, { 1, Level::kError, kName, kErrMsg, kHardwareID } },
-        // Can an error be detected with the axis Y?
+        // Check if error can be detected on axis y
         TestParam{ { true, kNormMax, kPubNum, "y" }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { true, kNormMax + kSigFig, kPubNum, "y" }, { 1, Level::kError, kName, kErrMsg, kHardwareID } }));
 

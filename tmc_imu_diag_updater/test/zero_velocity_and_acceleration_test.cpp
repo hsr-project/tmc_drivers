@@ -71,12 +71,12 @@ class GetZeroVecocityAndAccelerationErrorTest : public DiagUpdaterNodeTest,
 INSTANTIATE_TEST_CASE_P(
     TestWithParam, GetZeroVecocityAndAccelerationErrorTest,
     testing::Values(
-        // Border value test
+        // Boundary value test
         TestParam{ kThreshold + kEpsilon, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ kThreshold, { 1, Level::kError, kName, "Velocities and accelerations are zero", kHardwareID } }));
 
-// If the angle speed / acceleration is all below the threshold, an abnormal DIAG should be returned.
-// The phenomenon confirmed by TMC_ADI_DRIVER
+// Abnormal Diag should be returned when angular velocity and acceleration are all below threshold
+// Phenomenon confirmed in tmc_adi_driver
 TEST_P(GetZeroVecocityAndAccelerationErrorTest, TestWithParam) {
   // Setup
   const auto param = GetParam();

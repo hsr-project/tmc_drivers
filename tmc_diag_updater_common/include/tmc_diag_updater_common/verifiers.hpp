@@ -35,7 +35,7 @@ DAMAGE.
 #include <utility>
 #include <vector>
 
-// Placed here due to LINT problems, 2020.04 release scheduled to be supported
+// Placed here due to a lint issue, planned to be addressed in the April 2020 release
 #include <array>
 
 #include <rclcpp/rclcpp.hpp>
@@ -44,12 +44,12 @@ using diagnostic_msgs::msg::DiagnosticStatus;
 
 namespace tmc_diag_updater_common {
 
-// Operate the error level and explanation that you can finally set in Diagupdater in a pocket
+// Manage error levels and descriptions to be ultimately set in DiagUpdater in a unified manner
 typedef int DiagErrorLevel;
 using Summary = std::pair<DiagErrorLevel, std::string>;
 using Summaries = std::vector<Summary>;
 
-// Vertical namespace
+// Validator's namespace
 namespace verifier {
 
 static void InitSummary(Summary& summary) {
@@ -67,24 +67,24 @@ class Interface {
 
   virtual ~Interface() = default;
 
-  // Verification interface
-  // Return the SUMMARY after the update
+  // Validation interface
+  // Returns the updated Summary
   virtual Summary Verify(const MsgPtr& stamped_msg) {
     UpdateSummary(stamped_msg);
     return summary_;
   }
 
-  // /Add data to Diagnostics
-  // Measured cycle, acceleration, etc.
+  // Add data to /diagnostics
+  // Measured cycles, acceleration, etc.
   virtual void AddValues(diagnostic_updater::DiagnosticStatusWrapper& stat) const = 0;
 
  protected:
-  // Update the state
-  // Implementing how to verify the topic in a derivative class
+  // Update the status
+  // Implement how to validate the topic in derived classes
   virtual void UpdateSummary(const MsgPtr& stamped_msg) = 0;
 
-  // Set the OK state
-  // I want to unify the Summary in the OK state as much as possible for ease of understanding
+  // Set OK status
+  // Aim to unify OK state Summaries as much as possible for clarity
   void SetAsOK() { InitSummary(summary_); }
   // Set an arbitrary state
   void SetAs(const DiagErrorLevel id, const std::string& msg) {
@@ -95,8 +95,8 @@ class Interface {
   Summary GetSummary() const { return summary_; }
 
  private:
-  // Keep the latest status
-  // If you cannot verify your own, return the latest state (when passed in the nullPtr state)
+  // Hold the latest state
+  // Return the latest state if unable to perform own validation (e.g., when passed in a nullptr state)
   Summary summary_;
 };
 
@@ -121,7 +121,7 @@ class Disconnection : public Interface<MsgPtr> {
   virtual void UpdateSummary(const MsgPtr& stamped_msg) {
     const rclcpp::Time now = node_->get_clock()->now();
     if (stamped_msg == nullptr) {
-      // Judgment of interruption
+      // Disconnection judgment
       if (now - latest_clock_stamp_ > timeout_) {
         this->SetAs(DiagnosticStatus::ERROR, "Disconnected");
       }
@@ -137,7 +137,7 @@ class Disconnection : public Interface<MsgPtr> {
     stat.add("Latest message stamp [sec]", RCL_NS_TO_S(latest_msg_stamp_.nanoseconds()));
     stat.add("Latest message stamp [nsec]", RCL_S_TO_NS(latest_msg_stamp_.nanoseconds()));
     Summary summary = this->GetSummary();
-    // HAS no Verified Data is set by initialization, so there is no need to update.
+    // "Has no verified data" is set during initialization, so no need to update
     if (summary.second != "Has no verified data") {
       stat.summaryf(summary.first, summary.second.c_str());
     }
@@ -151,12 +151,12 @@ class Disconnection : public Interface<MsgPtr> {
 };
 
 
-// Class to verify whether you can subscribe at the expected cycle
-// With a two -step threshold, switch between warn and error
-// In addition, verify that communication is maintained
+// A class that validates whether subscription is occurring at the expected cycle
+// Has two levels of thresholds, switches between WARN and ERROR
+// Additionally, verify if communication is maintained
 //
-// The frequency is calculated using a queue
-// Find from the difference between the first and end of the queue and the end of the end
+// Frequency is calculated using a queue
+// Calculated from the difference between timestamps at the head and tail of the queue
 template <class MsgPtr>
 class UnexpectedRate : public Interface<MsgPtr> {
  public:
@@ -165,7 +165,7 @@ class UnexpectedRate : public Interface<MsgPtr> {
     const double error_hz = node->declare_parameter<double>("verifiers.unexpected_rate.error_hz", 25.0);
 
     const int window_size = node->declare_parameter<int>("verifiers.unexpected_rate.window_size", 2);
-    // Since the negative value is not assumed in the constructor, make an error
+    // Negative values are not expected in the constructor, treated as an error
     if (window_size < 0) {
       throw std::invalid_argument("Window size for computing rate should be positive value");
     }
@@ -183,8 +183,8 @@ class UnexpectedRate : public Interface<MsgPtr> {
     if (warn_hz_ < error_hz_) {
       throw std::invalid_argument("Warning hz should be greater than error hz.");
     }
-    // It shall determine 2 or more values ​​with positive values
-    // Because it is not an algorithm for frequency in 1 data
+    // Should request values of 2 or more with positive numbers
+    // Since not designed as an algorithm to calculate frequency with one data
     if (window_size_ < 2) {
       throw std::invalid_argument("Window size should be greater than 1 for computing rate");
     }
@@ -197,21 +197,21 @@ class UnexpectedRate : public Interface<MsgPtr> {
 
     actual_hz_ = std::numeric_limits<double>::quiet_NaN();
 
-    // Queing
-    // When the number of elements is reached, exclude from the old one
+    // Queuing
+    // Remove old items when reaching the specified number of elements
     times_queue_.push_back(rclcpp::Time(stamped_msg->header.stamp).seconds());
     if (times_queue_.size() > window_size_) {
       times_queue_.pop_front();
     }
 
-    // If the queue does not have enough data, do not process it afterwards
+    // Do not proceed with subsequent processing if insufficient data in the queue
     const int queue_size = static_cast<int>(times_queue_.size());
     if (queue_size != window_size_) {
       return;
     }
 
-    // Find the elapsed time
-    // If it is too small or a negative value, it will be abnormal
+    // Determine elapsed time
+    // Abnormal if excessively small or negative values
     const double elapse_time_in_queue = times_queue_.back() - times_queue_.front();
     if (elapse_time_in_queue <= std::numeric_limits<double>::epsilon()) {
       this->SetAs(DiagnosticStatus::ERROR, "The same or past timestamp");
@@ -219,7 +219,7 @@ class UnexpectedRate : public Interface<MsgPtr> {
       return;
     }
 
-    // Judge for frequency
+    // Calculate frequency for judgment
     actual_hz_ = static_cast<double>(queue_size - 1) / elapse_time_in_queue;
     if (actual_hz_ < error_hz_) {
       this->SetAs(DiagnosticStatus::ERROR, "Significantly low rate");
@@ -232,7 +232,7 @@ class UnexpectedRate : public Interface<MsgPtr> {
 
   virtual void AddValues(diagnostic_updater::DiagnosticStatusWrapper& stat) const {
     Summary summary = this->GetSummary();
-    // HAS no Verified Data is set by initialization, so there is no need to update.
+    // "Has no verified data" is set during initialization, so no need to update
     if (summary.second != "Has no verified data") {
       stat.summaryf(summary.first, summary.second.c_str());
     }
@@ -249,7 +249,7 @@ class UnexpectedRate : public Interface<MsgPtr> {
 };
 
 
-// Class to verify whether the expected Frame_id is
+// A class that validates whether the expected frame_id is matched
 template <class MsgPtr>
 class UnexpectedFrameId : public Interface<MsgPtr> {
  public:
@@ -262,7 +262,7 @@ class UnexpectedFrameId : public Interface<MsgPtr> {
   explicit UnexpectedFrameId(const std::string& expected_frame_id) : expected_frame_id_(expected_frame_id) {}
 
   virtual void UpdateSummary(const MsgPtr& stamped_msg) {
-    // If you can't find the value, judge that it's not the job of this class and do not update it.
+    // If unable to inspect up to the value, it's judged to be not the work of this class, and no update is performed
     if (stamped_msg == nullptr) {
       return;
     }
@@ -274,12 +274,12 @@ class UnexpectedFrameId : public Interface<MsgPtr> {
     }
   }
 
-  // There is no value -type output
+  // No output from a value type
   virtual void AddValues(diagnostic_updater::DiagnosticStatusWrapper& stat) const {
     Summary summary = this->GetSummary();
-    // HAS no Verified Data is set by initialization, so there is no need to update.
+    // "Has no verified data" is set during initialization, so no need to update
     if (summary.second != "Has no verified data") {
-      // UNEXPECTED Frame ID overlaps with other errors, so update with merge.
+      // Unexpected frame ID overlaps with other errors, so update with merge.
       stat.mergeSummaryf(summary.first, summary.second.c_str());
     }
   }
@@ -289,7 +289,7 @@ class UnexpectedFrameId : public Interface<MsgPtr> {
 };
 
 
-// Make a verification that does not depend on the message type
+// Create a validator that does not depend on the message type
 template <class MsgPtr>
 typename Interface<MsgPtr>::SharedPtr Create(std::string type, rclcpp::Node::SharedPtr node) {
   typename Interface<MsgPtr>::SharedPtr ptr;
