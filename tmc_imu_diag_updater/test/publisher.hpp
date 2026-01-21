@@ -27,7 +27,7 @@ DAMAGE.
 */
 /**
  * @file publisher.hpp
- * @brief Provides classes to publish periodic or one-time messages, among other things
+ * @brief Provides classes for publishing periodic or one-time messages
  * @auther Fukukazu Kawata
  *
  *
@@ -44,7 +44,7 @@ DAMAGE.
 namespace test_utils {
 
 /**
- * @brief Class for performing one-time or periodic publications
+ * @brief Class for one-time or periodic publishing
  *
  * @tparam MsgGen Message generator
  *
@@ -60,7 +60,7 @@ class Publisher {
    * @param nh Node handle
    * @param topic_name Name of the message to be published
    * @param queue_size Queue size of the Publisher
-   * @param msg_gen Reference counted pointer to the message generator
+   * @param msg_gen Reference-counted pointer to the message generator
    */
   Publisher(rclcpp::Node::SharedPtr node, const std::string& topic_name, const uint32_t queue_size,
             const typename MsgGen::SharedPtr& msg_gen)
@@ -87,7 +87,7 @@ class Publisher {
 
 
   /**
-   * @brief Periodically issue messages
+   * @brief Publish messages periodically
    *
    * @param rate_hz Frequency (Hz)
    */
@@ -102,7 +102,7 @@ class Publisher {
   }
 
   /**
-   * @brief End publication
+   * @brief End publishing
    */
   void StopPublishing() {
     cyclic_publish_timer_->cancel();
@@ -117,7 +117,7 @@ class Publisher {
   bool IsSubscribed() const { return pub_->get_subscription_count() != 0; }
 
   /**
-   * @brief Check and return whether there is at least one subscriber to the topic (wait for at most the specified time)
+   * @brief Check and return whether there is at least one subscriber to the topic (wait for a maximum specified time)
    *
    * @param wait_sec Waiting time (sec)
    *

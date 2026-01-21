@@ -40,7 +40,7 @@ namespace tmc_pgr_camera {
 typedef struct Image {
   /// Camera image
   cv::Mat image;
-  /// Timestamp when capturing camera image
+  /// Time when camera image was acquired
   std::chrono::system_clock::time_point time;
 } Image;
 

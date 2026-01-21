@@ -36,7 +36,7 @@ DAMAGE.
 
 namespace test_utils {
 
-// Retrieve a value corresponding to any key from the values property contained in Diag
+// Get the value corresponding to any key from the values property included in Diag
 double PickUpDiagValueOf(const std::string& key, const diagnostic_msgs::msg::DiagnosticStatus::_values_type& values) {
   for (const auto value : values) {
     if (key == value.key) {
@@ -69,7 +69,7 @@ bool WaitUntil(rclcpp::Node::SharedPtr node, std::function<bool()>& condition_fu
   return false;
 }
 
-// Wait until the timeout
+// Wait until timeout
 bool WaitUntilTimuout(rclcpp::Node::SharedPtr node, double timeout_sec = 5.0) {
   const rclcpp::Time start_time = node->get_clock()->now();
   rclcpp::Rate rate(100.0);
@@ -163,7 +163,7 @@ class CyclicImuPublisher {
   IDummySensorTime::SharedPtr sensor_time_;
 };
 
-// Do not use message_filters::Cache as it does not fulfill specific needs
+// Do not use message_filters::Cache as it does not address the specific needs
 class DiagCacheSubscriber {
  public:
   using SharedPtr = std::shared_ptr<DiagCacheSubscriber>;

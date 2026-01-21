@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief      Retrieve the Point Grey camera system configuration from the parameter server
+/// @brief      Retrieve the Point Grey camera system settings from the parameter server
 #ifndef TMC_PGR_CAMERA_ROS_PARAMETER_POINT_GREY_CAMERA_SYSTEM_SETTING_HPP_
 #define TMC_PGR_CAMERA_ROS_PARAMETER_POINT_GREY_CAMERA_SYSTEM_SETTING_HPP_
 #include <optional>
@@ -40,29 +40,29 @@ DAMAGE.
 
 namespace tmc_pgr_camera {
 
-/// @brief Class to retrieve the Point Grey camera system configuration from the ROS parameter server
+/// @brief Class to retrieve the Point Grey camera system settings from the ROS parameter server
 class RosParameterPointGreyCameraSystemSetting : public IPointGreyCameraSystemSetting {
  public:
   /// Constructor
   explicit RosParameterPointGreyCameraSystemSetting(rclcpp::Node::SharedPtr node_handle);
 
-  /// Get an array of serial numbers of cameras used in the camera system
+  /// Retrieve the array of serial numbers for the cameras used in the camera system
   virtual std::vector<uint32_t> GetSerialNumbers();
 
-  /// Load an array of camera properties
+  /// Load the array of camera properties
   virtual std::vector<FlyCapture2::Property> GetProperties();
 
-  /// Get the frame rate
+  /// Retrieve the frame rate
   virtual std::optional<std::pair<FlyCapture2::FrameRate, float> >
       GetFrameRate(const FlyCapture2::VideoMode video_mode);
 
-  /// Get the video mode
+  /// Retrieve the video mode
   virtual std::optional<FlyCapture2::VideoMode> GetVideoMode();
 
-  /// Get the Format7 settings
+  /// Retrieve the Format7 settings
   virtual std::optional<FlyCapture2::Format7ImageSettings> GetFormat7Setting();
 
-  /// Get the software demosaicing settings
+  /// Retrieve the software demosaicing settings
   virtual std::optional<FlyCapture2::ColorProcessingAlgorithm> GetSoftDemosaicing();
 
   /// Check if the software trigger is enabled
@@ -71,22 +71,22 @@ class RosParameterPointGreyCameraSystemSetting : public IPointGreyCameraSystemSe
   /// Check if the self-trigger is enabled
   virtual bool IsSelfTriggerEnabled();
 
-  /// Get the self-trigger settings
+  /// Retrieve the self-trigger settings
   virtual std::optional<SelfTriggerSettings> GetSelfTriggerSettings();
 
-  /// Get the trigger mode settings
+  /// Retrieve the trigger mode settings
   virtual std::optional<FlyCapture2::TriggerMode> GetTriggerMode();
 
   /// Create the trigger mode settings
   virtual void UpdateTriggerMode(int trigger_mode_mode, bool trigger_mode_on_off, int trigger_mode_polarity);
 
-  /// Get the trigger delay settings
+  /// Retrieve the trigger delay settings
   virtual std::optional<FlyCapture2::TriggerDelay> GetTriggerDelay();
 
-  /// Get the settings of the image type (monochrome, color)
+  /// Retrieve the image type (monochrome, color) settings
   virtual std::optional<ImageType> GetImageType();
 
-  /// Get the 3.3V output settings
+  /// Retrieve the 3.3V output settings
   virtual std::optional<bool> GetOutputVoltageSetting();
 
  private:

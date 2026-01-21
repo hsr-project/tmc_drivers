@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Camera system plugin for testing
+/// @brief      Test camera system plugin
 #include <chrono>
 #include <memory>
 #include <optional>
@@ -37,7 +37,7 @@ DAMAGE.
 
 namespace tmc_pgr_camera {
 
-/// @brief Camera system for testing
+/// @brief Test camera system
 class DummyCameraSystemPlugin : public ICameraSystemPluginBase {
  public:
   /// Constructor
@@ -53,7 +53,7 @@ class DummyCameraSystemPlugin : public ICameraSystemPluginBase {
   virtual void Open() {
     is_opened = true;
   }
-  /// Shutdown the camera system
+  /// Shut down the camera system
   virtual void Close() {
     is_opened = false;
     StopCapture();
@@ -80,23 +80,23 @@ class DummyCameraSystemPlugin : public ICameraSystemPluginBase {
   /// Check if the camera system is running
   virtual bool IsOpened() const { return is_opened; }
 
-  /// Check if capturing is ongoing
+  /// Check if capturing is in progress
   virtual bool IsCapturing() const { return is_capturing; }
 
-  /// Configure the camera settings
+  /// Configure the camera
   virtual void SetSettings(const YAML::Node& settings) {
-    // It's not possible in ROS 2 to begin with
+    // Not possible in ROS 2
     // ros::param::set("test_dynamic_reconfigure_callback_setting", settings);
   }
 
  private:
-  /// Whether the camera system is active
+  /// Whether the camera system is running
   bool is_opened;
 
   /// Whether capturing is in progress
   bool is_capturing;
 
-  /// Settings load object
+  /// Settings loading object
   std::shared_ptr<IPointGreyCameraSystemSetting> camera_system_settings_;
 };
 

@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Point Grey camera system
+/// @brief      Point Grey camera system
 #include "tmc_pgr_camera/point_grey_camera_system.hpp"
 #include <algorithm>
 #include <chrono>
@@ -43,22 +43,22 @@ DAMAGE.
 
 namespace {
 
-// Maximum number of captured images to keep
+// Maximum number of captured images to be saved
 const uint32_t kDefaultNumberOfImageBuffers = 2;
-// Timeout period to obtain default image [ms]
+// Timeout duration [ms] when obtaining the default image
 const uint32_t kDefaultGrabImageTimeout = 10000;
-// Time until RetrieveBuffer times out [ms]
+// Time [ms] until RetrieveBuffer times out
 const uint32_t kRetrieveTimeout = 800;
 // Settings for continuous pulse output
 const int kContinuouslyOutputPWMConfig = 0xFF;
 // Log throttle time [ms]
 const int kLogThrottleDuration = 5000;
 
-/// @brief Convert RAW image to color or grayscale image
+/// @brief Convert RAW images to color or grayscale images
 /// @param[in] image Input image
 /// @param[in] image_type Specify color or monochrome
 /// @return Converted image
-/// @exception std::runtime_error In case of conversion failure
+/// @exception std::runtime_error If conversion fails
 FlyCapture2::Image ConvertRawImage(const FlyCapture2::Image& image,
                                    const tmc_pgr_camera::ImageType image_type) {
   FlyCapture2::Image converted_image;
@@ -75,7 +75,7 @@ FlyCapture2::Image ConvertRawImage(const FlyCapture2::Image& image,
           break;
         case FlyCapture2::PIXEL_FORMAT_RAW12:
           // 12-bit RGB is not supported
-          // Mono12 is set as it corresponds to incorrect flag settings
+          // Set MONO12 as it applies when the flag setting is incorrect
           converted_format = FlyCapture2::PIXEL_FORMAT_MONO12;
           break;
         default:
@@ -108,7 +108,7 @@ FlyCapture2::Image ConvertRawImage(const FlyCapture2::Image& image,
 /// @brief Convert FlyCapture2::Image to cv::Mat
 /// @param[in] image Input image
 /// @return Converted image
-/// @exception std::runtime_error In case of conversion failure
+/// @exception std::runtime_error If conversion fails
 cv::Mat ConvertFlyCaptureImageToCvMat(const FlyCapture2::Image& image) {
   cv::Mat cv_image;
   const cv::Size image_size(image.GetCols(), image.GetRows());
@@ -131,10 +131,10 @@ cv::Mat ConvertFlyCaptureImageToCvMat(const FlyCapture2::Image& image) {
   return cv_image.clone();
 }
 
-/// @brief Obtain camera property array
+/// @brief Get camera property array
 /// @param[in] properties XML node describing camera properties
 /// @return Property array
-/// @exceptin In case of retrieval failure
+/// @exceptin If retrieval fails
 std::vector<FlyCapture2::Property> GetCameraProperties(const YAML::Node& properties) {
   const std::string error_message = "Failed to set settings.";
   if (!properties.IsSequence()) {
@@ -232,7 +232,7 @@ std::vector<FlyCapture2::Property> GetCameraProperties(const YAML::Node& propert
 namespace tmc_pgr_camera {
 
 /// @brief Constructor
-/// @param[in] camera_setting_file_path Path to camera setting file
+/// @param[in] camera_setting_file_path Path to the camera setting file
 PointGreyCameraSystem::PointGreyCameraSystem(std::shared_ptr<IPointGreyCameraSystemSetting>& camera_system_setting)
     : cameras_(),
       capture_thread_(),
@@ -252,19 +252,19 @@ PointGreyCameraSystem::~PointGreyCameraSystem() {
   }
 }
 
-/// @brief Start camera system
-/// @param[in] camera_setting_file_path Path to camera setting file
-/// @exception std::runtime_error In case of settings failure
+/// @brief Start the camera system
+/// @param[in] camera_setting_file_path Path to the camera setting file
+/// @exception std::runtime_error If setting fails
 void PointGreyCameraSystem::Open() {
   if (IsOpened()) {
     Close();
   }
 
-  // Generate camera
+  // Create camera
   const std::vector<uint32_t> serial_numbers = camera_system_settings_->GetSerialNumbers();
   for (const uint32_t serial_number : serial_numbers) {
     std::shared_ptr<PointGreyCamera> camera(new PointGreyCamera(serial_number));
-    // Restart temporarily
+    // Restart once
     camera->RestartCamera();
 
     // Set video mode and frame rate
@@ -278,7 +278,7 @@ void PointGreyCameraSystem::Open() {
     // Set properties
     camera->SetProperties(camera_system_settings_->GetProperties(), false);
 
-    // Set RAW configuration for camera output
+    // Set RAW settings for camera output
     const std::optional<FlyCapture2::Format7ImageSettings> format7_setting =
         camera_system_settings_->GetFormat7Setting();
     if (format7_setting) {
@@ -288,7 +288,7 @@ void PointGreyCameraSystem::Open() {
     cameras_.push_back(camera);
   }
 
-  // Configure self-trigger
+  // Set self-trigger
   if (camera_system_settings_->IsSelfTriggerEnabled()) {
     const std::optional<SelfTriggerSettings> self_trigger_setting = camera_system_settings_->GetSelfTriggerSettings();
     if (self_trigger_setting) {
@@ -296,7 +296,7 @@ void PointGreyCameraSystem::Open() {
     } else {
       throw std::runtime_error("Not found self trigger setting.");
     }
-    // Confirm 3.3V output setting and set if necessary
+    // Check 3.3V output setting and set if necessary
     const std::optional<bool> output_voltage_enable = camera_system_settings_->GetOutputVoltageSetting();
     if (output_voltage_enable) {
       if (*output_voltage_enable) {
@@ -318,7 +318,7 @@ void PointGreyCameraSystem::Open() {
   }
 }
 
-/// @brief Terminate camera system
+/// @brief Terminate the camera system
 void PointGreyCameraSystem::Close() {
   if (IsCapturing()) {
     StopCapture();
@@ -327,7 +327,7 @@ void PointGreyCameraSystem::Close() {
 }
 
 /// @brief Start capture
-/// @exception std::runtime_error In case of start failure
+/// @exception std::runtime_error If starting fails
 void PointGreyCameraSystem::StartCapture() {
   if (IsCapturing()) {
     CONSOLE_BRIDGE_logWarn("Already start capture.");
@@ -339,7 +339,7 @@ void PointGreyCameraSystem::StartCapture() {
   }
 
   capture_thread_ = std::thread(&PointGreyCameraSystem::CaptureThread, this);
-  // Wait for thread start
+  // Wait for thread startup
   uint32_t wait_count = 0;
   while (true) {
     if (IsCapturing()) {
@@ -352,12 +352,12 @@ void PointGreyCameraSystem::StartCapture() {
       throw std::runtime_error("Failed to start capture with timeout.\n");
     }
   }
-  // Countermeasures for abnormalities only in initial image acquisition with trigger mode
+  // Countermeasure for initial image acquisition abnormality in trigger mode
   const std::optional<FlyCapture2::TriggerMode> trigger_mode = camera_system_settings_->GetTriggerMode();
   if (trigger_mode && trigger_mode->onOff) {
-    // Trigger signal issuance for the first time only in software and self-trigger modes
-    // To avoid blocking in the first call of RetrieveBuffer within the image acquisition thread function
-    // This resolves the issue of acquiring the first image without external trigger input
+    // Send the first trigger signal only in software trigger and self-trigger modes.
+    // To avoid blocking the first call of RetrieveBuffer within the image acquisition thread function
+    // This resolves the issue of acquiring the first image without an external trigger
     // It's better to review the relationship between the main thread and the image acquisition thread
     if (camera_system_settings_->IsSoftwareTriggerEnabled()) {
       // First shot for software trigger
@@ -365,8 +365,8 @@ void PointGreyCameraSystem::StartCapture() {
       cameras_.front()->SetSoftwareTrigger(true);
     } else if (camera_system_settings_->IsSelfTriggerEnabled()) {
       // First shot for self-trigger
-      // Employ wait as it doesn't work immediately
-      // To advance processing within capture thread (★important)
+      // Apply a wait because it doesn't work immediately
+      // To advance processing within the capture thread (★important)
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       const std::optional<SelfTriggerSettings> self_trigger_setting =
           camera_system_settings_->GetSelfTriggerSettings();
@@ -381,7 +381,7 @@ void PointGreyCameraSystem::StartCapture() {
 }
 
 /// @brief Stop capture
-/// @exception std::runtime_error Capture stop failure
+/// @exception std::runtime_error If stopping capture fails
 void PointGreyCameraSystem::StopCapture() {
   // Terminate capture thread
   {
@@ -395,21 +395,21 @@ void PointGreyCameraSystem::StopCapture() {
 
   // Termination process in trigger mode
   if (cameras_.front()->GetTriggerMode().onOff) {
-    // Drive last capture as it's on standby in image acquisition processing thread
-    // In case of external trigger timeout for IEEE1394 camera,
-    // Apply software trigger to avoid image acquisition lock in thread
+    // Drive the final capture as it is in a waiting state in the image acquisition processing thread
+    // When external trigger timeout occurs for IEEE1394 camera,
+    // Apply software trigger to avoid thread image acquisition lock
     // However, it has no effect on USB cameras
     // For software trigger
 
-    // NOTE: Humble crashes the moment the function is called
+    // NOTE: In humble, it crashes the moment the function is called
     // cameras_.front()->SetSoftwareTrigger(true);
 
     if (camera_system_settings_->IsSelfTriggerEnabled()) {
-      // Send PWM waveform for self-trigger
+      // Transmit PWM waveform for self-trigger
       const std::optional<SelfTriggerSettings> self_trigger_setting =
           camera_system_settings_->GetSelfTriggerSettings();
       if (self_trigger_setting) {
-        // Issue self-trigger pulse if finite
+        // Transmit if the number of self-trigger pulses is finite
         if (self_trigger_setting->number_of_pulse != kContinuouslyOutputPWMConfig) {
           cameras_.front()->SendPwmForSelfTrigger(
               self_trigger_setting->out_io,
@@ -429,12 +429,12 @@ void PointGreyCameraSystem::StopCapture() {
   // Termination process in trigger mode
   typedef std::shared_ptr<PointGreyCamera> CameraPtr;
   if (cameras_.front()->GetTriggerMode().onOff) {
-    // NOTE: Humble crashes the moment the function is called
+    // NOTE: In humble, it crashes the moment the function is called
     // cameras_.front()->SetSoftwareTrigger(false);
     for (const CameraPtr& camera : cameras_) { camera->SetTriggerMode(FlyCapture2::TriggerMode()); }
   }
 
-  // Stop PWM waveform emission for self-trigger
+  // Stop PWM waveform transmission for self-trigger
   if (camera_system_settings_->IsSelfTriggerEnabled()) {
     const std::optional<SelfTriggerSettings> self_trigger_setting = camera_system_settings_->GetSelfTriggerSettings();
     if (self_trigger_setting) {
@@ -452,18 +452,18 @@ void PointGreyCameraSystem::StopCapture() {
   }
 }
 
-/// @brief Obtain capture image
-/// @return Array of acquired capture images (for number of cameras)
-/// @exception std::runtime_error In case of capture image acquisition failure
+/// @brief Acquire captured images
+/// @return Array of acquired captured images (for each camera)
+/// @exception std::runtime_error If acquiring captured images fails
 std::optional<std::vector<ImagePtr> > PointGreyCameraSystem::GrabImage() {
   if (cameras_.empty()) {
     throw std::runtime_error("Failed to grab image.");
   }
 
-  // Image acquisition wait processing in external, software, and self-trigger modes
+  // Image acquisition waiting process for external trigger, software trigger, and self-trigger
   std::optional<std::chrono::system_clock::time_point> time_stamp;
   if (cameras_.front()->GetTriggerMode().onOff) {
-    // If trigger is ON, set data to the time before Trigger call
+    // Set the time before the Trigger call to the data if trigger is ON
     time_stamp = std::chrono::system_clock::now();
     if (camera_system_settings_->IsSoftwareTriggerEnabled()) {
       // Start software trigger mode
@@ -471,11 +471,11 @@ std::optional<std::vector<ImagePtr> > PointGreyCameraSystem::GrabImage() {
         return std::nullopt;
       }
     } else if (camera_system_settings_->IsSelfTriggerEnabled()) {
-      // Send PWM waveform for self-trigger
+      // Transmit PWM waveform for self-trigger
       const std::optional<SelfTriggerSettings> self_trigger_setting =
           camera_system_settings_->GetSelfTriggerSettings();
       if (self_trigger_setting) {
-        // Issue self-trigger pulse if finite
+        // Transmit if the number of self-trigger pulses is finite
         if (self_trigger_setting->number_of_pulse != kContinuouslyOutputPWMConfig) {
           cameras_.front()->SendPwmForSelfTrigger(
               self_trigger_setting->out_io,
@@ -488,13 +488,13 @@ std::optional<std::vector<ImagePtr> > PointGreyCameraSystem::GrabImage() {
     }
   }
 
-  // Image acquisition processing wait
+  // Waiting for image acquisition processing
   uint32_t timeout = 0;
   std::optional<std::vector<ImagePtr> > images;
   while (true) {
     {
-      // NOTE: No equivalent mechanism to boost::upgrade_lock exists in std.
-      // Assumed no deadlock even if locked from the start, rather than Read-Only -> Lock procedure
+      // NOTE: There is no equivalent mechanism to boost::upgrade_lock in std.
+      // Instead of the procedure Read-Only -> Lock, consider that deadlock does not occur even if locked from the start
       // Apply unique_lock to this entire block.
       std::unique_lock<std::shared_mutex> write_lock(access_);
       // boost::upgrade_lock<boost::shared_mutex> upgrade_lock(access_);
@@ -512,7 +512,7 @@ std::optional<std::vector<ImagePtr> > PointGreyCameraSystem::GrabImage() {
     }
   }
 
-  // If trigger is ON, set data to the time before Trigger call
+  // Set the time before the Trigger call to the data if trigger is ON
   if (time_stamp) {
     for (const ImagePtr& image : *images) { image->time = *time_stamp; }
   }
@@ -520,8 +520,8 @@ std::optional<std::vector<ImagePtr> > PointGreyCameraSystem::GrabImage() {
   return images;
 }
 
-/// @brief Check if camera system is running
-/// @return Returns true if there is at least one camera, and all are connected
+/// @brief Check if the camera system is running
+/// @return Returns true if there is one or more cameras and all are connected
 bool PointGreyCameraSystem::IsOpened() const {
   bool is_opened = true;
   typedef std::shared_ptr<PointGreyCamera> CameraPtr;
@@ -535,8 +535,8 @@ bool PointGreyCameraSystem::IsOpened() const {
   return is_opened;
 }
 
-/// @brief Check if capturing
-/// @return Returns true if capture is occurring
+/// @brief Check if capturing is being done
+/// @return Returns true if capturing is being done
 bool PointGreyCameraSystem::IsCapturing() const {
   bool is_capturing = true;
   typedef std::shared_ptr<PointGreyCamera> CameraPtr;
@@ -550,9 +550,9 @@ bool PointGreyCameraSystem::IsCapturing() const {
   return is_capturing;
 }
 
-/// @brief Camera settings
-/// @param[in] settings Node describing settings
-/// @exception std::runtime_error In case of setting failure
+/// @brief Set camera settings
+/// @param[in] settings Node describing the settings
+/// @exception std::runtime_error If setting fails
 /// @note The values that can be set are as follows
 ///       ・FlyCapture2::Property
 ///         Example:
@@ -579,17 +579,17 @@ void PointGreyCameraSystem::SetSettings(const YAML::Node& settings) {
     throw std::runtime_error(error_message + "\n'setting' type is not struct.");
   }
 
-  // Setting properties
+  // Set properties
   if (settings["property"]) {
     const std::vector<FlyCapture2::Property>& properties = GetCameraProperties(settings["property"]);
     typedef std::shared_ptr<PointGreyCamera> CameraPtr;
     bool show_result = true;
     for (const CameraPtr& camera : cameras_) {
       camera->SetProperties(properties, show_result);
-      // Display setting results of properties only for the first camera
+      // Display the result of property setting only for the first camera
       show_result = false;
     }
-    // Setting trigger mode
+    // Set trigger mode
     for (int32_t i = 0; i < settings["property"].size(); ++i) {
       const YAML::Node& property_node = settings["property"][i];
       std::string type = property_node["type"].as<std::string>();
@@ -620,12 +620,12 @@ void PointGreyCameraSystem::SetSettings(const YAML::Node& settings) {
 }
 
 /// @brief Capture thread
-/// @exception std::runtime_error In case of processing failure during capture
+/// @exception std::runtime_error Failed to process during capture
 void PointGreyCameraSystem::CaptureThread() {
   if (cameras_.empty()) {
     throw std::runtime_error("Failed to capture.");
   }
-  // Setting trigger mode and delay
+  // Set trigger mode and delay
   typedef std::shared_ptr<PointGreyCamera> CameraPtr;
   for (const CameraPtr& camera : cameras_) {
     const std::optional<FlyCapture2::TriggerMode> trigger_mode = camera_system_settings_->GetTriggerMode();
@@ -642,7 +642,7 @@ void PointGreyCameraSystem::CaptureThread() {
   const FlyCapture2::TriggerMode trigger_mode = cameras_.front()->GetTriggerMode();
   if (trigger_mode.onOff) {
     for (const CameraPtr& camera : cameras_) {
-      // Set timeout duration for RetrieveBuffer
+      // Set timeout time for RetrieveBuffer
       FlyCapture2::FC2Config config;
       config.grabTimeout = kRetrieveTimeout;
       camera->SetConfiguration(config);
@@ -688,7 +688,7 @@ void PointGreyCameraSystem::CaptureThread() {
         captured_images_.push_back(images);
       }
     } catch (const std::runtime_error& e) {
-      // Apply throttle to log
+      // Throttle the log
       // Output to log only for new messages or after specified time has elapsed
       std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
       std::string message(e.what());
@@ -700,7 +700,7 @@ void PointGreyCameraSystem::CaptureThread() {
       }
     }
 
-    // Check thread stop command, if on terminate the thread
+    // Check thread stop command and terminate thread if on
     std::shared_lock<std::shared_mutex> read(access_);
     if (can_close_capture_thread_) {
       break;

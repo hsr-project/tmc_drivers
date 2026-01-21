@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Interface for the camera system plugin
+/// @brief      Interface for the camera system plugin
 #ifndef TMC_PGR_CAMERA_I_CAMERA_SYSTEM_PLUGIN_BASE_HPP_
 #define TMC_PGR_CAMERA_I_CAMERA_SYSTEM_PLUGIN_BASE_HPP_
 
@@ -55,7 +55,7 @@ class ICameraSystemPluginBase {
 
   /// Start the camera system
   virtual void Open() = 0;
-  /// Shutdown the camera system
+  /// Terminate the camera system
   virtual void Close() = 0;
 
   /// Start capturing
@@ -63,16 +63,16 @@ class ICameraSystemPluginBase {
   /// Stop capturing
   virtual void StopCapture() = 0;
 
-  /// Retrieve capture image
+  /// Obtain captured images
   virtual std::optional<std::vector<ImagePtr> > GrabImage() = 0;
 
   /// Check if the camera system is running
   virtual bool IsOpened() const = 0;
 
-  /// Check if capturing is ongoing
+  /// Check if capturing is in progress
   virtual bool IsCapturing() const = 0;
 
-  /// Configure the camera
+  /// Configure the camera settings
   virtual void SetSettings(const YAML::Node& settings) = 0;
 
  protected:

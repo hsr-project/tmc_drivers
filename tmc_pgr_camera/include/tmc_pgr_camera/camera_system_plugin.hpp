@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Camera system plugin template
+/// @brief      Camera system plugin template
 #ifndef TMC_PGR_CAMERA_CAMERA_SYSTEM_PLUGIN_HPP_
 #define TMC_PGR_CAMERA_CAMERA_SYSTEM_PLUGIN_HPP_
 
@@ -49,7 +49,7 @@ class CameraSystemPlugin : public ICameraSystemPluginBase {
 
   /// Start the camera system
   virtual void Open();
-  /// Shutdown the camera system
+  /// Terminate the camera system
   virtual void Close();
 
   /// Start capturing
@@ -57,7 +57,7 @@ class CameraSystemPlugin : public ICameraSystemPluginBase {
   /// Stop capturing
   virtual void StopCapture();
 
-  /// Retrieve captured image
+  /// Get captured image
   virtual std::optional<std::vector<ImagePtr> > GrabImage();
 
   /// Check if the camera system is running

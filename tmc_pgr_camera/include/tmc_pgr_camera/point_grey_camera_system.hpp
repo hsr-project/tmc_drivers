@@ -65,21 +65,21 @@ class PointGreyCameraSystem {
   /// Shut down the camera system
   void Close();
 
-  /// Start capture
+  /// Start capturing
   void StartCapture();
-  /// Stop capture
+  /// Stop capturing
   void StopCapture();
 
-  /// Obtain captured image
+  /// Get captured images
   std::optional<std::vector<ImagePtr> > GrabImage();
 
   /// Check if the camera system is running
   bool IsOpened() const;
 
-  /// Check if capturing is ongoing
+  /// Check if capturing is in progress
   bool IsCapturing() const;
 
-  /// Configure the camera settings
+  /// Configure the camera
   void SetSettings(const YAML::Node& settings);
 
   /// Capture thread
@@ -92,9 +92,9 @@ class PointGreyCameraSystem {
   std::thread capture_thread_;
   /// Buffer for captured images
   boost::circular_buffer<std::vector<ImagePtr> > captured_images_;
-  /// Settings loading object
+  /// Configuration loading object
   std::shared_ptr<IPointGreyCameraSystemSetting> camera_system_settings_;
-  /// Flag to terminate capture thread
+  /// Flag to determine whether to terminate the capture thread
   bool can_close_capture_thread_;
   /// Mutex
   std::shared_mutex access_;

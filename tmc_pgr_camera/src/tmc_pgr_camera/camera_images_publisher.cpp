@@ -36,8 +36,8 @@ namespace tmc_pgr_camera {
 
 /// @brief Constructor
 /// @param[in] node Node handle
-/// @param[in] image_topic_names Array of topic names for the images to distribute (for each camera)
-/// @param frame_id frame_id of the image message being published
+/// @param[in] image_topic_names Array of topic names for distributing images (for each camera)
+/// @param frame_id frame_id of the image message to be distributed
 CameraImagesPublisher::CameraImagesPublisher(const rclcpp::Node::SharedPtr& node_handle,
                                              const std::vector<std::string>& topic_names,
                                              const std::string& frame_id)
@@ -60,9 +60,9 @@ CameraImagesPublisher::CameraImagesPublisher(const rclcpp::Node::SharedPtr& node
 }
 
 /// @brief Distribute images
-/// @param[in] camera_images Array of camera images to distribute
-/// @exception std::runtime_error If the number of camera images and Publishers do not match
-/// @exception std::runtime_error If there are no camera images available
+/// @param[in] camera_images Array of camera images to be distributed
+/// @exception std::runtime_error When the number of camera images does not match the number of Publishers
+/// @exception std::runtime_error When there are no camera images
 void CameraImagesPublisher::Publish(const std::vector<ImagePtr>& camera_images) const {
   if (camera_images.size() < camera_image_publishers_.size()) {
     throw std::runtime_error(

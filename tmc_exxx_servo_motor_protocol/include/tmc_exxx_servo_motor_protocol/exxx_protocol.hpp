@@ -175,10 +175,10 @@ class ExxxProtocol : public IDynamixelishProtocol, private boost::noncopyable {
 
   /// Write data to multiple nodes
   /// @param[in] ids Array of IDs to write
-  /// @param[in] addr Address to write (common to nodes)
+  /// @param[in] addr Address to write (common across nodes)
   /// @param[in] data Array of data to write
   /// @return ErrorCode
-  /// @pre The sizes of ids and data are the same
+  /// @pre The size of ids and data must be the same
   template <typename T>
   ErrorCode SyncWriteData(std::vector<uint8_t> ids, uint16_t addr, std::vector<T> data) {
     if (ids.size() != data.size()) {
@@ -197,7 +197,7 @@ class ExxxProtocol : public IDynamixelishProtocol, private boost::noncopyable {
     error = network_->Send(kBroadcastID, kInstructionSyncWrite, &send_buffer_[0], send_buffer_.size());
     if (error) return error;
 
-    // sync_write does not get a response
+    // sync_write does not return a response
     return boost::system::error_code(boost::system::errc::success, boost::system::system_category());
   }
 

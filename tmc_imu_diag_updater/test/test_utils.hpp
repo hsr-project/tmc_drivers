@@ -129,18 +129,18 @@ class DiagUpdaterNodeTest : public testing::Test {
   rclcpp::Node::SharedPtr getNode() { return node_; }
 
   // Process at the end of each test
-  // - Publish completed
-  // - Subscription completed
+  // - End of Publish
+  // - End of Subscription
   void TearDown() override {
     imu_pub_.reset();
     diag_sub_.reset();
   }
 
  protected:
-  // Access point to ROS functions
+  // Access point to ROS features
   rclcpp::Node::SharedPtr node_;
 
-  // Utilities for send/receive confirmation
+  // Send/receive confirmation utilities
   std::function<bool()> imu_is_subscribed_;
   std::function<bool()> diag_is_advertised_;
   std::function<bool()> cache_length_greater_than_3_;

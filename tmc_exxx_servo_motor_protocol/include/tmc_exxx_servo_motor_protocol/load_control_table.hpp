@@ -36,7 +36,7 @@ DAMAGE.
 #include <tmc_exxx_servo_motor_protocol/control_table.hpp>
 
 namespace tmc_exxx_servo_motor_protocol {
-/// Loads the control_table that matches the version and returns its path
+/// Load the control_table with matching version and return its path
 bool LoadControlTable(const std::string& package_path, const std::vector<uint8_t>& hw_hash,
                       ControlTable& control_table_out, std::string& selected_path_out);
 

@@ -123,8 +123,8 @@ TEST(LoadControlTableTest, FailByNothingMatchedTable1) {
 
 // control_table.csv is not in home
 // control_table.csv is in the directory for each version
-// control_table.csv is in the parent directory of the version directory
-// md5 of the control_table.csv in the parent directory matches
+// control_table.csv is in the parent directory of the directory for each version
+// md5 of control_table.csv in the parent directory matches
 TEST(LoadControlTableTest, FailByNothingMatchedTable2) {
   std::string package_path;
   std::string selected_path;
