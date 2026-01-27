@@ -44,7 +44,7 @@ namespace {
 // Camera configuration file
 const char* kCameraSystemSettingFileName = "test/config/default.yml";
 
-// Configuration file with self-trigger ON but no self-trigger settings specified
+// Configuration file without self-trigger settings even though self-trigger is ON
 const char* kMissingSelfTrigerSettingFileName = "test/config/get_trigger_mode_abnormal_00.yml";
 }
 
@@ -74,13 +74,13 @@ TEST_F(PointGreyCameraSystemTest, LaunchCameraSystemNormal) {
   ASSERT_NO_THROW(camera_system_->Open());
   ASSERT_TRUE(camera_system_->IsOpened());
 
-  // No error occurs even if called twice
+  // No error occurs even when called twice
   ASSERT_NO_THROW(camera_system_->Open());
 }
 
-/// @brief The camera system does not start up correctly
+/// @brief Camera system does not start up correctly
 TEST_F(PointGreyCameraSystemTest, LaunchCameraSystemAbnormal) {
-  // Despite self-trigger being ON, settings are not specified
+  // Configuration is not specified even though self-trigger is ON
   ASSERT_TRUE(std::filesystem::exists(
       kMissingSelfTrigerSettingFileName));
   ASSERT_NO_THROW(camera_setting_.reset(
@@ -95,8 +95,8 @@ TEST_F(PointGreyCameraSystemTest, StartCaptureNormal) {
   ASSERT_NO_THROW(camera_system_->StartCapture());
   ASSERT_TRUE(camera_system_->IsCapturing());
 
-  // No error occurs even if called twice
-  // Standard error output indicating already capturing
+  // No error occurs even when called twice
+  // Standard error output indicates that it is already being captured
   std::stringbuf buf;
   std::streambuf* prev = std::cerr.rdbuf(&buf);
   ASSERT_NO_THROW(camera_system_->StartCapture());
@@ -113,7 +113,7 @@ TEST_F(PointGreyCameraSystemTest, StartCaptureNormal) {
 TEST_F(PointGreyCameraSystemTest, StopCaptureNormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
-  // No error occurs even if called in a state where not capturing
+  // No error is thrown even when called in a non-capturing state
   ASSERT_NO_THROW(camera_system_->StopCapture());
 
   // Capture ends
@@ -128,24 +128,24 @@ TEST_F(PointGreyCameraSystemTest, GrabImageNormal) {
   ASSERT_NO_THROW(camera_system_->Open());
   ASSERT_NO_THROW(camera_system_->StartCapture());
 
-  // Due to self-trigger settings, the timestamps of the two obtained images are the same
+  // Since it is a self-trigger setting, the timestamps of the two obtained images are the same
   std::optional<std::vector<ImagePtr> > images;
   ASSERT_NO_THROW(images = camera_system_->GrabImage());
   ASSERT_EQ(2, images->size());
   ASSERT_EQ(images->at(0)->time, images->at(1)->time);
 
-  // Confirm that the obtained image is correct
+  // Verification that the obtained image is correct
   ASSERT_EQ(960, images->at(0)->image.rows);
   ASSERT_EQ(1280, images->at(0)->image.cols);
   ASSERT_EQ(960, images->at(1)->image.rows);
   ASSERT_EQ(1280, images->at(1)->image.cols);
 }
 
-/// @brief Confirm if the settings are successful
+/// @brief Verify if the configuration is successful
 TEST_F(PointGreyCameraSystemTest, SetSettingNormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
-  // Confirm if the following can be configured
+  // Verify if the following can be configured
   // {
   //   property: [
   //     { type: brightness, absValue: 0.0, ..., onePush: on }
@@ -168,7 +168,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingNormal) {
 
   ASSERT_NO_THROW(camera_system_->SetSettings(setting));
 
-  // Confirm if trigger_mode setting can be configured
+  // Verify if trigger_mode can be configured
   YAML::Node trigger_mode;
   trigger_mode["type"] = std::string("trigger_mode");
   trigger_mode["mode"] = 0;
@@ -181,22 +181,22 @@ TEST_F(PointGreyCameraSystemTest, SetSettingNormal) {
   ASSERT_NO_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Fails to configure when the camera is not started
+/// @brief Configuration fails when the camera is not started
 TEST_F(PointGreyCameraSystemTest, SetSettingWithoutOpenAbnormal) {
   YAML::Node setting;
   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Fails to configure with an empty value
+/// @brief Configuration fails with empty values
 TEST_F(PointGreyCameraSystemTest, SetSettingWithEmptyValueAbnormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
-  // setting is not TypeStruct
+  // Setting is not TypeStruct
   YAML::Node setting;
   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Fails to configure without specifying a property type
+/// @brief Configuration fails without specifying property type
 TEST_F(PointGreyCameraSystemTest, SetSettingWithoutTypeAbnormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
@@ -217,7 +217,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithoutTypeAbnormal) {
   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Fails to configure with an invalid property type
+/// @brief Configuration fails with an invalid property type
 TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
@@ -239,8 +239,8 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Fails to configure with an invalid value
-/// XmlRpc -> Changed to YAML, the difference in number types is absorbed.
+/// @brief Configuration fails with an invalid value
+/// Due to the change from XmlRpc to YAML, differences in numeric types are absorbed.
 // TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidValueAbnormal) {
 //   ASSERT_NO_THROW(camera_system_->Open());
 

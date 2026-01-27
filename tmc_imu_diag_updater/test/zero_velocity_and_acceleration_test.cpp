@@ -75,7 +75,7 @@ INSTANTIATE_TEST_CASE_P(
         TestParam{ kThreshold + kEpsilon, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ kThreshold, { 1, Level::kError, kName, "Velocities and accelerations are zero", kHardwareID } }));
 
-// Abnormal Diag should be returned when angular velocity and acceleration are all below threshold
+// An abnormal Diag should be returned when all angular velocities and accelerations are below the threshold
 // Phenomenon confirmed in tmc_adi_driver
 TEST_P(GetZeroVecocityAndAccelerationErrorTest, TestWithParam) {
   // Setup

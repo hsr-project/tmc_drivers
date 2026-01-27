@@ -27,7 +27,7 @@ DAMAGE.
 */
 /**
  * @file generator.hpp
- * @brief Provides a class for generating messages
+ * @brief Provides a class to generate messages
  * @auther Fukukazu Kawata
  * @note Derive from IGenerator as needed
  *
@@ -42,7 +42,7 @@ DAMAGE.
 namespace test_utils {
 
 /**
- * @brief Definition of an interface for generating data
+ * @brief Definition of an interface to generate data
  *
  * @tparam T Some type
  */
@@ -60,7 +60,7 @@ class IGenerator {
 /**
  * @brief Generates fixed data
  *
- * That value is the one given at initialization
+ * The value is given at initialization
  *
  * @tparam T Some type
  */
@@ -68,7 +68,7 @@ template <class T>
 class FixedGenerator : public IGenerator<T> {
  public:
   /**
-   * @brief Setting of the initial value (used continuously thereafter)
+   * @brief Setting the initial value (used continuously thereafter)
    *
    * @param data Initial value
    */
@@ -77,7 +77,7 @@ class FixedGenerator : public IGenerator<T> {
   virtual ~FixedGenerator() = default;
 
   /**
-   * @brief Obtain data (fixed)
+   * @brief Retrieve data (fixed)
    *
    * @return Data set at initialization
    */
@@ -88,9 +88,9 @@ class FixedGenerator : public IGenerator<T> {
 };
 
 /**
- * @brief Generates a Stamp that flows with time
+ * @brief Generates a Stamp according to the flow of time
  *
- * Will be rclcpp::Time::now at the time of acquisition
+ * Becomes rclcpp::Time::now at the time of retrieval
  */
 class ForwardStampGenerator : public IGenerator<rclcpp::Time> {
  public:
@@ -98,15 +98,15 @@ class ForwardStampGenerator : public IGenerator<rclcpp::Time> {
   virtual ~ForwardStampGenerator() = default;
 
   /**
-   * @brief Obtain time (forward direction)
+   * @brief Retrieve time (forward direction)
    *
-   * @return Time of RCLCPP type
+   * @return Time in RCLCPP type
    */
   rclcpp::Time Generate() override { return rclcpp::Clock(RCL_ROS_TIME).now(); }
 };
 
 /**
- * @brief Generates a reverted Stamp
+ * @brief Generates a reverse Stamp
  */
 class BackwardStampGenerator : public IGenerator<rclcpp::Time> {
  public:
@@ -114,9 +114,9 @@ class BackwardStampGenerator : public IGenerator<rclcpp::Time> {
   virtual ~BackwardStampGenerator() = default;
 
   /**
-   * @brief Obtain time (reverse direction)
+   * @brief Retrieve time (reverse direction)
    *
-   * @return Time of RCLCPP type
+   * @return Time in RCLCPP type
    */
   rclcpp::Time Generate() override {
     if (base_time_ == boost::none) {
@@ -131,11 +131,11 @@ class BackwardStampGenerator : public IGenerator<rclcpp::Time> {
 
 
 /**
- * @brief Class that generates and provides both a message and a Stamp
+ * @brief Class that generates and provides a Stamp along with a message
  *
  * @tparam M RCLCPP message type
  *
- * Needs to be in the following property structure
+ * Needs to have a property structure as below
  *
  * msg.header.stamp
  */
@@ -161,7 +161,7 @@ class StampAndMessageGenerator : public IGenerator<M> {
   virtual ~StampAndMessageGenerator() = default;
 
   /**
-   * @brief Generates a message and attaches a Stamp to it
+   * @brief Generates a message and assigns a Stamp to it
    *
    * @return RCLCPP message
    */

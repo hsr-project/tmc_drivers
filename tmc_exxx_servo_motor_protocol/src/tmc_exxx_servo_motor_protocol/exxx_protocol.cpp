@@ -57,7 +57,7 @@ ExxxProtocol::ErrorCode ExxxProtocol::Reset(uint8_t id) {
     return error;
   }
   error = network_->Receive(id, receive_buffer_);
-  // Timeout is considered normal completion since there is no response on success
+  // No response on success, so timeout is considered normal completion
   if (error.value() == boost::system::errc::timed_out) {
     return ExxxProtocol::ErrorCode(boost::system::errc::success, boost::system::system_category());
   }
@@ -109,12 +109,12 @@ ExxxProtocol::ErrorCode ExxxProtocol::WriteEeprom(uint8_t id) {
 }
 
 /// Retrieve the git hash value of the firmware
-/// @param[in] id node id
+/// @param[in] id Node id
 /// @param[out] control_table_hash_out md5sum of control_table.csv
 /// @param[out] firmware_hash_out git hash tag of control firmware
-/// @retval success successful
-/// @retval message_size invalid message size retrieved
-/// @retval other system or ExxxCategory error
+/// @retval success Success
+/// @retval message_size Invalid size of the retrieved message
+/// @retval other System or ExxxCategory error
 ExxxProtocol::ErrorCode ExxxProtocol::ReadHash(uint8_t id, std::vector<uint8_t>& control_table_hash_out,
                                                std::vector<uint8_t>& firmware_hash_out) {
   ExxxProtocol::ErrorCode error = network_->Send(id, kInstructionReadHash, NULL, 0);
@@ -127,7 +127,7 @@ ExxxProtocol::ErrorCode ExxxProtocol::ReadHash(uint8_t id, std::vector<uint8_t>&
   if (error.category() == boost::system::system_category() && error) {
     return error;
   } else if (receive_buffer_.size() != kControlTableHashByte + kFirmwareHashByte) {
-    // Error due to invalid received size
+    // Error on receiving invalid size
     return ExxxProtocol::ErrorCode(boost::system::errc::message_size, boost::system::system_category());
   }
   control_table_hash_out.resize(kControlTableHashByte);

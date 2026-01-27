@@ -99,7 +99,7 @@ def main():
             state.temperature = float(data['temperature'])
             state.current = data['electric_current']
             state.charge = data['remaining_charge']
-            # It needs to be confirmed whether full_charge_capacity is capacity or design_capacity, but it's not important so we don't worry about it
+            # Need to confirm whether full_charge_capacity is capacity or design_capacity, but it's not important so don't worry about it
             state.capacity = data['full_charge_capacity']
             state.design_capacity = float('nan')
             # state.design_capacity = data['full_charge_capacity']
@@ -109,7 +109,7 @@ def main():
 
             if data['full_charge']:
                 state.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_FULL
-            elif data['electric_current'] < 0.0:
+            elif data['electric_current'] > 0.0:
                 state.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
             else:
                 state.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
@@ -124,7 +124,7 @@ def main():
                 state.power_supply_health = BatteryState.POWER_SUPPLY_HEALTH_UNKNOWN
             state_pub.publish(state)
 
-            if data['electric_current'] < 0.0:
+            if data['electric_current'] > 0.0:
                 diag.is_charging = True
             else:
                 diag.is_charging = False

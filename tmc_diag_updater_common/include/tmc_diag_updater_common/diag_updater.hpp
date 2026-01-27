@@ -39,10 +39,10 @@ DAMAGE.
 
 namespace tmc_diag_updater_common {
 
-// Class for subscribing, verifying, and updating diagnostics
+// Class for topic subscription, verification, and diag update
 //
 // Topic reception events and verification events are independent
-// Needed to have an overview to verify communication quality of the topic
+// Needed to have an overview to verify communication quality of topics, etc.
 template <class MsgPtr, class MsgType>
 class DiagUpdater {
  public:
@@ -54,7 +54,7 @@ class DiagUpdater {
       rclcpp::Node::SharedPtr node,
       std::function<typename verifier::Interface<MsgPtr>::SharedPtr(std::string, rclcpp::Node::SharedPtr)> creator_func)
       : node_(node) {
-    // Configuration of diagupdater
+    // Setting up diagupdater
     std::string hardware_id;
     if (node_->has_parameter("hardware_id")) {
       hardware_id = node_->get_parameter("hardware_id").get_value<std::string>();
@@ -66,7 +66,7 @@ class DiagUpdater {
     diag_updater_->setHardwareID(hardware_id);
     diag_updater_->add(hardware_id + " topic status", this, &DiagUpdater::UpdateDiag);
 
-    // Creation of the verifier
+    // Creating a verifier
     // Parse rosparam to generate multiple verifiers
     std::vector<std::string> verifiers_list =
         node_->declare_parameter<std::vector<std::string>>("verifiers_list", std::vector<std::string>({}));
@@ -79,11 +79,11 @@ class DiagUpdater {
     }
     verifier_summaries_.resize(verifiers_list.size());
 
-    // It is recommended to combine the topic name and hardwareid
+    // It seems better to have the topic name and hardwareid together
     sub_ = node_->create_subscription<MsgType>(hardware_id, rclcpp::SensorDataQoS(),
                                                std::bind(&DiagUpdater::UpdateTopic, this, std::placeholders::_1));
 
-    // Set verification events on the timer
+    // Set verification event on timer
     const double sampling_hz = node_->declare_parameter<double>("sampling_hz", 200.0);
     if (sampling_hz <= std::numeric_limits<double>::epsilon()) {
       throw std::runtime_error("Specify positive value as sampling Hz");
@@ -106,10 +106,14 @@ class DiagUpdater {
     dst_stat.summary(initial_summary.first, initial_summary.second);
 
     for (auto verifier_summary : verifier_summaries_) {
+      // Even though diagnostics 6d7951c allows messages to be merged when OK, we want to avoid it, so we add avoidance code
+      if (verifier_summary.first == diagnostic_msgs::msg::DiagnosticStatus::OK) {
+        continue;
+      }
       // Priority of levels is ERROR > WARN > OK, messages are in registration order
       dst_stat.mergeSummary(verifier_summary.first, verifier_summary.second);
     }
-    // Add details such as verification results
+    // Add details of verification results, etc.
     for (auto verifier : verifiers_) {
       verifier->AddValues(dst_stat);
     }
@@ -133,7 +137,7 @@ class DiagUpdater {
   std::vector<typename verifier::Interface<MsgPtr>::SharedPtr> verifiers_;
   Summaries verifier_summaries_;
 
-  // Regular event issuance for Diag updates
+  // Issue periodic event for Diag update
   rclcpp::TimerBase::SharedPtr cyclic_publish_timer_;
   rclcpp::Node::SharedPtr node_;
 };

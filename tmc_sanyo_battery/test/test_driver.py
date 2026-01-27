@@ -42,7 +42,7 @@ valid_result = {
     'full_charge_capacity': float(0x0201) / 1000.0,
     'remaining_charge': float(0x0403) / 1000.0,
     'battery_level': (float(0x0403) / 1000.0) / (float(0x0201) / 1000.0) * 100.0,
-    'electric_current': float(0x0605) / 1000.0 * 2.0,
+    'electric_current': -float(0x0605) / 1000.0 * 2.0,
     'voltage': float(0x0807) / 1000.0,
     'temperature': float(0x09) - 128.0,
     'zero_percent_detected': False,

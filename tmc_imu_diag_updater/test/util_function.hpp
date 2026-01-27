@@ -27,7 +27,7 @@ DAMAGE.
 */
 /**
  * @file util_function.hpp
- * @brief Provides functions that perform processes frequently used in tests
+ * @brief Provides functions that perform processes commonly done in tests
  * @auther Fukukazu Kawata
  *
  *
@@ -48,13 +48,13 @@ using WaitFunctionType = std::function<bool()>;
  *
  * @param condition_function Condition function
  * @param timeout_sec Maximum wait time (sec)
- * @param rate_hz Check rate (hz), default 100.0 (hz)
+ * @param rate_hz Check cycle (hz) Default 100.0 (hz)
  *
  * @return Condition met or not met
  */
 bool WaitUntil(rclcpp::Node::SharedPtr node, WaitFunctionType condition_function, double timeout_sec,
                double rate_hz = 100.0) {
-  // Argument error checking
+  // Error check for arguments
   if (!condition_function) {
     throw std::invalid_argument("Function for waiting is empty.");
   }
@@ -92,7 +92,7 @@ bool WaitForTopicExistence(rclcpp::Node::SharedPtr node, const std::string& topi
       }
     }
 
-    // Check timeout
+    // Check for timeout
     if (std::chrono::steady_clock::now() - start_time > timeout) {
       return false;
     }

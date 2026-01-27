@@ -96,8 +96,8 @@ inline void CameraSystemPlugin<CameraSystem>::StopCapture() {
   camera_->StopCapture();
 }
 
-/// @brief Acquire captured images
-/// @return Array of captured images (images for the number of cameras)
+/// @brief Obtain captured images
+/// @return Array of captured images (images for each camera)
 /// @exception std::runtime_error If called before initialization
 template <class CameraSystem>
 inline std::optional<std::vector<ImagePtr> > CameraSystemPlugin<CameraSystem>::GrabImage() {
@@ -118,8 +118,8 @@ inline bool CameraSystemPlugin<CameraSystem>::IsOpened() const {
   return camera_->IsOpened();
 }
 
-/// @brief Check if capturing is being performed
-/// @return Returns true if capturing is performed
+/// @brief Check if capturing is being done
+/// @return Returns true if capturing is being done
 /// @exception std::runtime_error If called before initialization
 template <class CameraSystem>
 inline bool CameraSystemPlugin<CameraSystem>::IsCapturing() const {

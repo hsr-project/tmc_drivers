@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Point Grey Camera
+/// @brief Point Grey camera
 #ifndef TMC_PGR_CAMERA_POINT_GREY_CAMERA_HPP_
 #define TMC_PGR_CAMERA_POINT_GREY_CAMERA_HPP_
 
@@ -41,7 +41,7 @@ DAMAGE.
 
 namespace tmc_pgr_camera {
 
-/// @brief Point Grey Camera Class
+/// @brief Point Grey camera class
 class PointGreyCamera {
   PointGreyCamera(const PointGreyCamera&) = delete;
   PointGreyCamera& operator=(const PointGreyCamera&) = delete;
@@ -61,35 +61,35 @@ class PointGreyCamera {
   /// Set properties
   void SetProperties(const std::vector<FlyCapture2::Property>& properties, const bool show_result);
 
-  /// Configure video mode and frame rate
+  /// Set video mode and frame rate
   void SetVideoModeAndFrameRate(const FlyCapture2::VideoMode video_mode,
                                 const std::pair<FlyCapture2::FrameRate, float>& frame_rate);
 
-  /// Configure RAW settings for camera output
+  /// Set RAW configuration for camera output
   void SetFormat7Configuration(const FlyCapture2::Format7ImageSettings& format7_setting);
 
-  /// Configure self-trigger
+  /// Set self-trigger
   void SetSelfTriggerSetting(const uint32_t out_io, const uint32_t pulse_figure);
 
-  /// Configure trigger mode
+  /// Set trigger mode
   void SetTriggerMode(const FlyCapture2::TriggerMode& trigger_mode);
 
   /// Get trigger mode
   FlyCapture2::TriggerMode GetTriggerMode();
 
-  /// Retrieve trigger mode information
+  /// Get trigger mode information
   FlyCapture2::TriggerModeInfo GetTriggerModeInfo();
 
-  /// Get software trigger state
+  /// Get software trigger status
   bool GetSoftwareTrigger();
 
-  /// Configure trigger delay
+  /// Set trigger delay
   void SetTriggerDelay(const FlyCapture2::TriggerDelay& trigger_delay);
 
   /// Configure camera settings
   void SetConfiguration(const FlyCapture2::FC2Config& config);
 
-  /// Configure software trigger
+  /// Set software trigger
   bool SetSoftwareTrigger(const bool set_switch);
 
   /// Start capture
@@ -110,18 +110,18 @@ class PointGreyCamera {
   /// Read value from camera register
   void ReadRegister(const uint32_t address, uint32_t& value);
 
-  /// Emit PWM waveform a specified number of times
+  /// Transmit PWM waveform a specified number of times
   void SendPwmForSelfTrigger(const uint32_t out_io,
                              const uint32_t number_of_pulse,
                              const uint32_t polarity);
 
-  /// Stop emitting PWM waveform
+  /// Stop PWM waveform transmission
   void StopPwmForSelfTrigger(const uint32_t out_io);
 
   /// (Blackfly only) Output 3.3V from GPIO
   void OutputVoltage(const bool enable);
 
-  /// Check if capture is happening
+  /// Check if capture is ongoing
   bool is_capturing();
 
  private:
@@ -129,7 +129,7 @@ class PointGreyCamera {
   uint32_t serial_number_;
   /// Mutex
   std::shared_mutex access_;
-  /// Flag indicating if capture is happening
+  /// Flag indicating if capture is ongoing
   bool is_capturing_;
   /// Camera object
   std::shared_ptr<FlyCapture2::Camera> camera_;

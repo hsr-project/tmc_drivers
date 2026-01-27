@@ -75,13 +75,13 @@ class ContiguousSameValueTest : public DiagUpdaterNodeTest, public ::testing::Wi
 INSTANTIATE_TEST_CASE_P(
     ValidateBehaviorWithParam, ContiguousSameValueTest,
     testing::Values(
-        // Since the test subject retains the data, the order in which the data is given changes the result
-        // Test group to gradually reduce the number of variable properties and confirm that it results in an error when crossing the threshold
+        // The test subject holds data, so the result changes depending on the order in which the data is provided
+        // A test group that gradually reduces the number of fluctuating properties and confirms that an error occurs when crossing the threshold
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "xy", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "x", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "", 100 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },
-        // Temporarily return to normal and check if it works with a different property
+        // Temporarily return to normal and check if it works with different properties
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xy", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "x", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
@@ -91,7 +91,7 @@ INSTANTIATE_TEST_CASE_P(
         TestParam{ { "xy", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xy", "xy", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "x", "xy", 100 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },
-        // Temporarily return to normal and confirm that an error occurs when crossing the continuous count threshold
+        // Temporarily return to normal and confirm that an error occurs when crossing the consecutive count threshold
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 0
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 1

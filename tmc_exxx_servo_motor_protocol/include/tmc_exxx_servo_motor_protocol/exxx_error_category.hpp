@@ -41,8 +41,8 @@ const boost::system::error_category& ExxxSafetyErrorCategory();
 namespace exxx_error_code {
 
 
-/// Represents flags that are set in bit fields
-/// Enum has jumping values, but takes composite values
+/// Represents flags set in the bit field
+/// Enum has non-sequential values but takes composite values
 /// 0bit: OverTemperature
 /// 1bit: VoltageError
 /// 2bit: OverPosition
@@ -80,8 +80,8 @@ enum ExxxErrorCode {
 };
 
 
-/// Represents flags that are set in bit fields
-/// Enum has jumping values, but takes composite values
+/// Represents flags set in the bit field
+/// Enum has non-sequential values but takes composite values
 /// 0bit: Unused
 /// 1bit: PowerSupplyMOSFETShortError
 /// 2bit: PowerSupplyMOSFETOpenError

@@ -27,7 +27,7 @@ DAMAGE.
 */
 /**
  * @file subscriber.hpp
- * @brief Provides Subscriber with cache, etc.
+ * @brief Provides a Subscriber with cache, etc.
  * @auther Fukukazu Kawata
  *
  *
@@ -46,7 +46,7 @@ namespace test_utils {
 /**
  * @brief Subscriber with cache
  *
- * Start/stop subscription, clear buffer
+ * Start/stop subscription and clear buffer
  *
  * @tparam M Message type
  */
@@ -54,16 +54,16 @@ template <class M>
 class CacheSubscriber {
  public:
   /**
-   * @brief Alias for smart pointers with reference counting
+   * @brief Alias for reference-counted smart pointer
    */
   using SharedPtr = std::shared_ptr<CacheSubscriber>;
 
   /**
    * @brief Constructor
    *
-   * @param nh Node handle. Used for creating subscriber
-   * @param topic_name Name of the topic to subscribe
-   * @param queue_size Queue size for Subscriber
+   * @param nh Node handle. Used to create subscriber
+   * @param topic_name Name of the topic to subscribe to
+   * @param queue_size Queue size of the Subscriber
    */
   CacheSubscriber(rclcpp::Node::SharedPtr node, const std::string& topic_name, const uint32_t queue_size)
       : topic_name_(topic_name), queue_size_(queue_size), node_(node) {
@@ -102,39 +102,39 @@ class CacheSubscriber {
   void ClearCache() { std::vector<M>().swap(cache_); }
 
   /**
-   * @brief Check if the topic being subscribed to is published
+   * @brief Check if the topic to subscribe to is being published
    *
-   * @return Whether the topic is published or not
+   * @return Whether the topic is being published or not
    */
   bool IsPublished() const { return sub_->get_publisher_count() != 0; }
 
   /**
-   * @brief Check if the topic being subscribed to is published (wait up to the specified time)
+   * @brief Check if the topic to subscribe to is being published (wait for a maximum specified time)
    *
    * @param wait_sec Waiting time (sec)
    *
-   * @return Whether the topic is published or not
+   * @return Whether the topic is being published or not
    */
   bool IsPublished(const double wait_sec) const {
     return WaitUntil([&]() { return sub_->get_publisher_count() != 0; }, wait_sec);
   }
 
   /**
-   * @brief Get length of the cache
+   * @brief Get the length of the cache
    *
    * @return Length of the cache
    */
   uint32_t GetCacheLength() const { return static_cast<uint32_t>(cache_.size()); }
 
   /**
-   * @brief Obtain a copy of the cache
+   * @brief Get a copy of the cache
    *
    * @return Copy of the cache
    */
   std::vector<M> cache() const { return cache_; }
 
   /**
-   * @brief Obtain the latest message in the cache
+   * @brief Get the latest message in the cache
    *
    * @return Latest message
    */
@@ -142,7 +142,7 @@ class CacheSubscriber {
 
  private:
   /**
-   * @brief Add message to the cache. Bound as Callback for Subscriber
+   * @brief Add a message to the cache. Bound as a Callback for the Subscriber
    *
    * @param msg Message
    */

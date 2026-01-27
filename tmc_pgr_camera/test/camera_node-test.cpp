@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief      Test for camera node
+/// @brief      Test of the camera node
 #include <string>
 #include <vector>
 #include <boost/circular_buffer.hpp>
@@ -36,19 +36,19 @@ DAMAGE.
 
 namespace {
 
-// Topic name for the left image
+// Topic name of the left image
 const char* kLeftImageTopicName = "/stereo_camera/left/image_raw";
 
-// Service name to control the camera
+// Name of the service to control the camera
 const char* kControlCameraServiceName = "control_camera";
 
-// Service name for dynamic_reconfigure
+// Service name of dynamic_reconfigure
 const char* kDynamicReconfigureServiceName = "/stereo_camera/property/set_parameters";
 
 // Name of the node used in the test
 const char* kTestNodeName = "/stereo_camera";
 
-// Parameter name to get camera settings
+// Parameter name to obtain camera settings
 const char* kSettingParamName = "setting";
 
 // Parameter name for setting camera properties
@@ -63,10 +63,10 @@ const float kTimeout = 5.0;
 
 namespace tmc_pgr_camera {
 
-/// @brief Test fixture for camera node
+/// @brief Test fixture for the camera node
 class CameraNodeTest : public testing::Test {
  protected:
-  /// @brief Subscriber initialization
+  /// @brief Initialization of the subscriber
   virtual void SetUp() {
     node_ = rclcpp::Node::make_shared("camera_node_test");
     s_images.set_capacity(3);
@@ -78,7 +78,7 @@ class CameraNodeTest : public testing::Test {
     node_.reset();
   }
 
-  /// @brief Callback function to receive delivered images
+  /// @brief Callback function to receive distributed images
   void ImageCallback(const sensor_msgs::msg::Image& image) { s_images.push_back(image); }
 
   inline size_t image_buffer_size() { return s_images.size(); }
@@ -92,11 +92,11 @@ class CameraNodeTest : public testing::Test {
   /// Image subscriber
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr s_image_sub;
 
-  /// Ring buffer for received images
+  /// Ring buffer of the acquired images
   boost::circular_buffer<sensor_msgs::msg::Image> s_images;
 };
 
-/// @brief Check if the camera node can process normally until delivery
+/// @brief Check if the camera node can process up to distribution normally
 TEST_F(CameraNodeTest, CheckPublishing) {
   const rclcpp::Time start_time = get_node_handle()->get_clock()->now();
   rclcpp::Rate rate(1);
@@ -111,7 +111,7 @@ TEST_F(CameraNodeTest, CheckPublishing) {
   ASSERT_NE(0u, image_buffer_size());
 }
 
-/// @brief Verify if the start/stop capture service works
+/// @brief Confirm if the start/stop capture service works
 TEST_F(CameraNodeTest, CheckService) {
   rclcpp::Client<tmc_vision_msgs::srv::ControlCamera>::SharedPtr client =
     get_node_handle()->create_client<tmc_vision_msgs::srv::ControlCamera>(kControlCameraServiceName);
@@ -140,7 +140,7 @@ TEST_F(CameraNodeTest, CheckService) {
   ASSERT_TRUE(res_service == rclcpp::FutureReturnCode::SUCCESS);
   ASSERT_FALSE(res.get()->is_success);
 
-  // Stopped → Started
+  // Stopped → Running
   req->capture = true;
   res = client->async_send_request(req);
   res_service = rclcpp::spin_until_future_complete(get_node_handle(), res);
@@ -166,12 +166,12 @@ TEST_F(CameraNodeTest, CheckDynamicReconfigure) {
 
   std::string ns = std::string(kPropertyParamName);
 
-  // Check if the parameter server is running
+  // Confirm if the parameter server is running
   ASSERT_TRUE(param_client->service_is_ready());
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclcpp::spin_some(get_node_handle());
 
-  // Pass parameter directly
+  // Pass the parameter directly
   std::vector<rclcpp::Parameter> setting_params = {
     // brightness
     rclcpp::Parameter(ns + std::string(".brightness_abs_value"), 1.367188),
@@ -218,7 +218,7 @@ TEST_F(CameraNodeTest, CheckDynamicReconfigure) {
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclcpp::spin_some(get_node_handle());
 
-  // Check if the one_push setting is cleared
+  // Confirm if the one_push setting is cleared
   std::vector<rclcpp::Parameter> one_push_params = {
     rclcpp::Parameter(ns + std::string(".auto_exposure_one_push"), true),
     rclcpp::Parameter(ns + std::string(".white_balance_one_push"), true),
@@ -231,7 +231,7 @@ TEST_F(CameraNodeTest, CheckDynamicReconfigure) {
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclcpp::spin_some(get_node_handle());
-  // One_push changes to false after the camera settings are applied
+  // One_push changes to false after the setting is reflected in the camera
   for (auto & param : param_client->get_parameters({
     ns + std::string(".auto_exposure_one_push"),
     ns + std::string(".white_balance_one_push"),
@@ -241,7 +241,7 @@ TEST_F(CameraNodeTest, CheckDynamicReconfigure) {
     ASSERT_FALSE(param.get_value<bool>());
   }
 
-  // Confirm that setting mode to 1 in trigger_mode makes auto_manual_mode for shutter unable to be set.
+  // Confirm that when mode is set to 1 in trigger_mode, shutter's auto_manual_mode cannot be set.
   auto trigger_mode_1_parameters_result = param_client->set_parameters({
     rclcpp::Parameter(ns + std::string(".trigger_mode_mode"), 1),
     rclcpp::Parameter(ns + std::string(".shutter_auto_manual_mode"), true),
@@ -251,10 +251,10 @@ TEST_F(CameraNodeTest, CheckDynamicReconfigure) {
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclcpp::spin_some(get_node_handle());
-  // shutter_auto_manual_mode is forcibly changed to false when trigger_mode_mode is 1
+  // When trigger_mode_mode is 1, shutter_auto_manual_mode is forcibly changed to false
   ASSERT_FALSE(param_client->get_parameter<bool>(ns + std::string(".shutter_auto_manual_mode")));
 
-  // Confirm that auto_manual_mode for shutter can be set when mode in trigger_mode is set to anything other than 1.
+  // Confirm that when mode is set to something other than 1 in trigger_mode, shutter's auto_manual_mode can be set.
   auto trigger_mode_0_parameters_result = param_client->set_parameters({
     rclcpp::Parameter(ns + std::string(".trigger_mode_mode"), 0),
     rclcpp::Parameter(ns + std::string(".shutter_auto_manual_mode"), true),
@@ -264,10 +264,10 @@ TEST_F(CameraNodeTest, CheckDynamicReconfigure) {
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclcpp::spin_some(get_node_handle());
-  // shutter_auto_manual_mode is retained if trigger_mode_mode is not 1
+  // If trigger_mode_mode is not 1, shutter_auto_manual_mode is retained
   ASSERT_TRUE(param_client->get_parameter<bool>(ns + std::string(".shutter_auto_manual_mode")));
 
-  // Confirm that setting on_off to on (1) in trigger_mode disables frame_rate setting.
+  // Confirm that when on_off is set to on (1) in trigger_mode, frame_rate settings cannot be made.
   auto trigger_mode_on_off_1_parameters_result = param_client->set_parameters({
     rclcpp::Parameter(ns + std::string(".trigger_mode_on_off"), true),
     rclcpp::Parameter(ns + std::string(".frame_rate_on_off"), true),
@@ -278,11 +278,11 @@ TEST_F(CameraNodeTest, CheckDynamicReconfigure) {
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclcpp::spin_some(get_node_handle());
-  // frame_rate related settings are forcibly changed to false
+  // Frame_rate related settings are forcibly changed to false
   ASSERT_FALSE(param_client->get_parameter<bool>(ns + std::string(".frame_rate_on_off")));
   ASSERT_FALSE(param_client->get_parameter<bool>(ns + std::string(".frame_rate_auto_manual_mode")));
 
-  // Confirm that setting on_off to off (0) in trigger_mode allows frame_rate setting.
+  // Confirm that when on_off is set to off (0) in trigger_mode, frame_rate settings can be made.
   auto trigger_mode_on_off_0_parameters_result = param_client->set_parameters({
     rclcpp::Parameter(ns + std::string(".trigger_mode_on_off"), false),
     rclcpp::Parameter(ns + std::string(".frame_rate_on_off"), true),
@@ -293,7 +293,7 @@ TEST_F(CameraNodeTest, CheckDynamicReconfigure) {
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   rclcpp::spin_some(get_node_handle());
-  // frame_rate related settings are retained
+  // Frame_rate related settings are retained
   ASSERT_TRUE(param_client->get_parameter<bool>(ns + std::string(".frame_rate_on_off")));
   ASSERT_TRUE(param_client->get_parameter<bool>(ns + std::string(".frame_rate_auto_manual_mode")));
 }

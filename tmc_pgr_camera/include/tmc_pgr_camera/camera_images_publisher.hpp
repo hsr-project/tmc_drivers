@@ -40,7 +40,7 @@ DAMAGE.
 
 namespace tmc_pgr_camera {
 
-/// @brief Class that distributes camera images
+/// @brief Class for distributing camera images
 class CameraImagesPublisher {
   CameraImagesPublisher(const CameraImagesPublisher&) = delete;
   CameraImagesPublisher& operator=(const CameraImagesPublisher&) = delete;
@@ -50,11 +50,11 @@ class CameraImagesPublisher {
   CameraImagesPublisher(const rclcpp::Node::SharedPtr& node_handle,
                         const std::vector<std::string>& topic_names,
                         const std::string& frame_id);
-  /// Distribute the image
+  /// Distribute images
   void Publish(const std::vector<ImagePtr>& camera_images) const;
 
  private:
-  /// For obtaining the timestamp
+  /// For obtaining timestamps
   rclcpp::Clock::SharedPtr clock_;
   /// frame_id of the image message to be distributed
   std::string frame_id_;

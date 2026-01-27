@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file control_table.cpp
-/// @brief Implementation of a class that retrieves a control table from csv and uses it for communication
+/// @brief Implementation of a class that retrieves the control table from a CSV and uses it for communication
 #define OPENSSL_API_COMPAT 10101
 
 #include <fstream>
@@ -177,7 +177,7 @@ class ControlTable::ControlTableImpl {
     ++it;
     std::string attribute_str = *it;
 
-    // If the same name exists, fail immediately
+    // Immediate failure if there is a duplicate name
     if (descriptors_.find(name) != descriptors_.end()) {
       return kAlreadyRecorded;
     }

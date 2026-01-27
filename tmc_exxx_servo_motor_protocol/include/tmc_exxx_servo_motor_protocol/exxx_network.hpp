@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file exxx_network.hpp
-/// Exxx Amplifier Network Management
+/// Network management of Exxx amp
 
 #ifndef TMC_EXXX_SERVO_MOTOR_PROTOCOL_EXXX_NETWORK_HPP_
 #define TMC_EXXX_SERVO_MOTOR_PROTOCOL_EXXX_NETWORK_HPP_
@@ -84,10 +84,10 @@ class ExxxNetwork : private boost::noncopyable, public INetwork {
   int32_t timeout_;
   int32_t sleep_tick_;
 
-  /// Send/Receive Buffer (for one packet)
+  /// Send/receive buffer (one packet)
   std::array<uint8_t, 260> buffer_;
 
-  /// Subcontractor called only by construct
+  /// Subcontractor called only from construct
   void Init(std::string device_name, boost::system::error_code& error_out, bool is_usb_rs485);
 
   rclcpp::Logger logger_;

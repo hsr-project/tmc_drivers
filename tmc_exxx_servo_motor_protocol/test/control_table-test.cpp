@@ -48,25 +48,25 @@ TEST(LoadFailTest, InCorrectFile) {
   EXPECT_EQ(ControlTable::kColumnSizeError, table.Load("test/test_csv_table/incorrect_table.csv"));
 }
 
-// File contains duplicate entries
+// File containing the same entry
 TEST(LoadFailTest, SameEntryFile) {
   ControlTable table;
   EXPECT_EQ(ControlTable::kAlreadyRecorded, table.Load("test/test_csv_table/same_entry.csv"));
 }
 
-// Strange type name
+// Type name is strange
 TEST(LoadFailTest, BadTypeFile) {
   ControlTable table;
   EXPECT_EQ(ControlTable::kBadType, table.Load("test/test_csv_table/bad_type.csv"));
 }
 
-// Loadable
+// Readable
 TEST(LoadFailTest, CorrectFile) {
   ControlTable table;
   EXPECT_EQ(ControlTable::kSuccess, table.Load("test/test_csv_table/correct_table.csv"));
 }
 
-// Test after loading
+// Test after reading
 class ControlTableTest : public ::testing::Test {
  public:
   ControlTableTest() { control_table_.Load("test/test_csv_table/correct_table.csv"); }
@@ -87,7 +87,7 @@ TEST_F(ControlTableTest, CheckMd5) {
   }
 }
 
-// Confirm if the specified descriptor can be retrieved
+// Confirm if the specified descriptor can be properly retrieved
 TEST_F(ControlTableTest, ReferItemDescriptor) {
   ControlTableItemDescriptor::Ptr value1 = control_table_.ReferItemDescriptor("value1");
   ASSERT_TRUE(value1);
@@ -392,7 +392,7 @@ TEST(ControlTableItemDescriptorTest, ConvertUint64) {
   EXPECT_EQ(0x56, table_bytes_ret[4]);
   EXPECT_EQ(0x9a, table_bytes_ret[3]);
   EXPECT_EQ(0x9b, table_bytes_ret[2]);
-  // Precision limit of double
+  // Double precision limit
   // EXPECT_EQ(0xe9, table_bytes_ret[1]);
   // EXPECT_EQ(0xbe, table_bytes_ret[0]);
 
@@ -432,7 +432,7 @@ TEST(ControlTableItemDescriptorTest, ConvertInt64) {
   EXPECT_EQ(0x56, table_bytes_ret[4]);
   EXPECT_EQ(0x9a, table_bytes_ret[3]);
   EXPECT_EQ(0x9b, table_bytes_ret[2]);
-  // Precision limit of double
+  // Double precision limit
   // EXPECT_EQ(0xe9, table_bytes_ret[1]);
   // EXPECT_EQ(0xbe, table_bytes_ret[0]);
 

@@ -42,7 +42,7 @@ def make_test_status():
     test_status = {}
     test_status['voltage'] = 1.0
     test_status['temperature'] = 2
-    test_status['electric_current'] = 3.0
+    test_status['electric_current'] = -3.0
     test_status['remaining_charge'] = 4.0
     test_status['full_charge_capacity'] = 5.0
     test_status['battery_level'] = 6.0
@@ -124,7 +124,7 @@ def test_diagnostics(setup):
     assert status.message == 'Battery Level: 6.0 %'
     assert extract_value(status.values, 'voltage') == '1.0'
     assert extract_value(status.values, 'temperature') == '2'
-    assert extract_value(status.values, 'electric_current') == '3.0'
+    assert extract_value(status.values, 'electric_current') == '-3.0'
     assert extract_value(status.values, 'remaining_charge') == '4.0'
     assert extract_value(status.values, 'full_charge_capacity') == '5.0'
     assert extract_value(status.values, 'battery_level') == '6.0'
@@ -133,7 +133,7 @@ def test_diagnostics(setup):
     assert extract_value(status.values, 'over_discharge') == 'False'
 
     test_status = make_test_status()
-    test_status['electric_current'] = -1.0
+    test_status['electric_current'] = 1.0
 
     connect_mock = setup[1]
     connect_mock.read.return_value = test_status
@@ -141,7 +141,7 @@ def test_diagnostics(setup):
     status = capture_diagnostic_status(node, DiagnosticStatus.OK)
     assert status.message == 'Battery Level: 6.0 %'
 
-    test_status['electric_current'] = 1.0
+    test_status['electric_current'] = -1.0
     test_status['battery_level'] = 21.0
     connect_mock.read.return_value = test_status
 
@@ -174,7 +174,7 @@ def test_battery_state_normal(setup):
     state = capture_battery_state(node)
     assert state.voltage == 1.0
     assert state.temperature == 2.0
-    assert state.current == 3.0
+    assert state.current == -3.0
     assert state.charge == 4.0
     assert state.capacity == 5.0
     assert state.percentage == 6.0
@@ -196,7 +196,7 @@ def test_battery_state_full_charge(setup):
 
 def test_battery_state_charging(setup):
     test_status = make_test_status()
-    test_status['electric_current'] = -1.0
+    test_status['electric_current'] = 1.0
 
     connect_mock = setup[1]
     connect_mock.read.return_value = test_status

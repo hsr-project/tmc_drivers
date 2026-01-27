@@ -39,7 +39,7 @@ DAMAGE.
 using tmc_exxx_servo_motor_protocol::ExxxProtocol;
 
 // Custom plain C array matcher
-// This might not be needed if the gmock version is upgraded
+// Might not be needed if the version of gmock is upgraded
 MATCHER_P2(ArrayEq, value, size, "") {
   bool match = true;
   for (uint32_t i = 0; i < size; ++i) {

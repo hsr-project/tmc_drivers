@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Load the configuration file for the Point Grey camera system
+/// @brief      Load the configuration file for the Point Grey camera system
 #include "tmc_pgr_camera/ros_parameter_point_grey_camera_system_setting.hpp"
 #include <limits>
 #include <string>
@@ -39,16 +39,16 @@ namespace tmc_pgr_camera {
 
 /// @brief Constructor
 /// @param[in] node_handle ROS node handle
-/// @exception std::invalid_argument When there is a contradiction in the settings
+/// @exception std::invalid_argument If there is a contradiction in the configuration
 RosParameterPointGreyCameraSystemSetting::RosParameterPointGreyCameraSystemSetting(rclcpp::Node::SharedPtr node_handle)
     : node_handle_(node_handle) {
 }
 
-/// @brief Get the array of serial numbers for the cameras used in the camera system
+/// @brief Obtain an array of serial numbers for cameras used in the camera system
 /// @return Array of camera serial numbers
-/// @note The acceptable number of elements is only 1 (monocular) or 2 (stereo)
-/// @note In the case of 2, the first element becomes the master
-/// @exception std::runtime_error When the array elements are not acceptable
+/// @note The allowable number of elements is only 1 (monocular) or 2 (stereo)
+/// @note In the case of 2 elements, the first element becomes the master
+/// @exception std::runtime_error If the array elements are not acceptable
 std::vector<uint32_t> RosParameterPointGreyCameraSystemSetting::GetSerialNumbers() {
   if (!serials_.empty()) {
     return serials_;
@@ -74,7 +74,7 @@ std::vector<uint32_t> RosParameterPointGreyCameraSystemSetting::GetSerialNumbers
   return serials_;
 }
 
-/// @brief Load the array of camera properties
+/// @brief Load an array of camera properties
 /// @return Array of camera properties
 std::vector<FlyCapture2::Property> RosParameterPointGreyCameraSystemSetting::GetProperties() {
   if (!properties_.empty()) {
@@ -149,12 +149,12 @@ std::vector<FlyCapture2::Property> RosParameterPointGreyCameraSystemSetting::Get
   return camera_properties;
 }
 
-/// @brief Get the frame rate
-/// @param[in] video_mode Video format to use
-/// @return Pair of constant value in the FlyCapture2 SDK for the acquired frame rate
-///         and the actual frame rate value. For Format7, the constant value is FRAMERATE_FORMAT7
-/// @exception std::runtime_error When the parameter does not exist
-/// @exception std::runtime_error When an invalid frame rate is set (only determined when a non-FORMAT7 is set)
+/// @brief Obtain the frame rate
+/// @param[in] video_mode The video format actually used
+/// @return A pair of the constant value in the FlyCapture2 SDK for the obtained frame rate
+///         and the actual frame rate value. In the case of Format7, the constant value is FRAMERATE_FORMAT7
+/// @exception std::runtime_error If the parameter does not exist
+/// @exception std::runtime_error If a non-existent frame rate is set (only judged when something other than FORMAT7 is set)
 std::optional<std::pair<FlyCapture2::FrameRate, float> > RosParameterPointGreyCameraSystemSetting::GetFrameRate(
     const FlyCapture2::VideoMode video_mode) {
   if (frame_rate_) {
@@ -191,11 +191,11 @@ std::optional<std::pair<FlyCapture2::FrameRate, float> > RosParameterPointGreyCa
   return frame_rate_;
 }
 
-/// @brief Get the video mode
-/// @return Constant value in the FlyCapture2 SDK for the acquired video mode
-///         If no setting exists, it returns an invalid value
-/// @exception std::runtime_error When the parameter does not exist
-/// @exception std::runtime_error When a non-existent video mode is specified
+/// @brief Obtain the video mode
+/// @return The constant value in the FlyCapture2 SDK for the obtained video mode
+///         Returns an invalid value if there is no setting
+/// @exception std::runtime_error If the parameter does not exist
+/// @exception std::runtime_error If a non-existent video mode is specified
 std::optional<FlyCapture2::VideoMode> RosParameterPointGreyCameraSystemSetting::GetVideoMode() {
   if (video_mode_) {
     return video_mode_;
@@ -239,11 +239,11 @@ std::optional<FlyCapture2::VideoMode> RosParameterPointGreyCameraSystemSetting::
   return video_mode_;
 }
 
-/// @brief Get the settings for Format7
-/// @return Acquired settings for Format7
-///         If no setting exists, it returns an invalid value
-/// @exception std::runtime_error When the parameter does not exist
-/// @exception std::runtime_error When the node key does not exist
+/// @brief Obtain the Format7 settings
+/// @return Obtained Format7 settings
+///         Returns an invalid value if the setting does not exist
+/// @exception std::runtime_error If the parameter does not exist
+/// @exception std::runtime_error If the node key does not exist
 std::optional<FlyCapture2::Format7ImageSettings> RosParameterPointGreyCameraSystemSetting::GetFormat7Setting() {
   if (format7_setting_) {
     return format7_setting_;
@@ -314,11 +314,11 @@ std::optional<FlyCapture2::Format7ImageSettings> RosParameterPointGreyCameraSyst
   return format7_setting_;
 }
 
-/// @brief Get the software demosaicing settings
-/// @return Acquired software demosaicing settings
-///         If no setting exists, it returns an invalid value
-/// @exception std::runtime_error When the parameter does not exist
-/// @exception std::runtime_error When an incorrect string is specified in the setting
+/// @brief Obtain the software demosaicing settings
+/// @return Obtained software demosaicing settings
+///         Returns an invalid value if the setting does not exist
+/// @exception std::runtime_error If the parameter does not exist
+/// @exception std::runtime_error If an incorrect string is specified for the setting value
 std::optional<FlyCapture2::ColorProcessingAlgorithm> RosParameterPointGreyCameraSystemSetting::GetSoftDemosaicing() {
   if (software_demosaicing_) {
     return software_demosaicing_;
@@ -348,25 +348,25 @@ std::optional<FlyCapture2::ColorProcessingAlgorithm> RosParameterPointGreyCamera
 }
 
 /// @brief Check if the software trigger is enabled
-/// @return Returns false if the software trigger is disabled or if the setting does not exist
-/// @note Depends on the number of camera serials in the array (enabled when there is 1)
+/// @return Returns false if the software trigger is disabled or the setting does not exist
+/// @note Depends on the number of elements in the camera serial array (enabled if 1)
 bool RosParameterPointGreyCameraSystemSetting::IsSoftwareTriggerEnabled() {
   std::vector<uint32_t> camera_serial = GetSerialNumbers();
   return static_cast<int>(camera_serial.size()) == 1;
 }
 
 /// @brief Check if the self-trigger is enabled
-/// @return Returns false if the self-trigger is disabled or if the setting does not exist
-/// @note Depends on the number of camera serials in the array (enabled when there are 2)
+/// @return Returns false if the self-trigger is disabled or the setting does not exist
+/// @note Depends on the number of elements in the camera serial array (enabled if 2)
 bool RosParameterPointGreyCameraSystemSetting::IsSelfTriggerEnabled() {
   std::vector<uint32_t> camera_serial = GetSerialNumbers();
   return static_cast<int>(camera_serial.size()) == 2;
 }
 
-/// @brief Get the self-trigger settings
-/// @return Acquired self-trigger settings
-///         If no setting exists, it returns an invalid value
-/// @exception std::runtime_error When the parameter is invalid
+/// @brief Obtain the self-trigger settings
+/// @return Obtained self-trigger settings
+///         Returns an invalid value if the setting does not exist
+/// @exception std::runtime_error If the parameter is invalid
 std::optional<SelfTriggerSettings> RosParameterPointGreyCameraSystemSetting::GetSelfTriggerSettings() {
   if (self_trigger_setting_) {
     return self_trigger_setting_;
@@ -403,22 +403,22 @@ std::optional<SelfTriggerSettings> RosParameterPointGreyCameraSystemSetting::Get
     throw std::runtime_error("Invalid self_trigger pulse width vector length.");
   }
   // Oscillation period setting
-  // Format is 0xLLLLHHHH (L affects the Low time, H affects the High time)
+  // Format is 0xLLLLHHHH (L affects the time it is Low, H affects the time it is High)
   // Unit is 9.765e-7[sec] 1.024e+6[Hz]
   // The individual setting range for Low and High is
   // min: 9.765e-7[sec] 1.024e+6[Hz]
   // max: 0.063999[sec] 15.625[Hz] (min x 0xFFFF)
-  // Thus, as a whole waveform
+  // In other words, as a whole waveform
   // min: 1.9531e-6[sec] 5.12e+5[Hz]
   // max: 0.1279980[sec] 7.8126[Hz]
   // As a rosparam, it can be set in msec units
-  // (To simplify processing, as there is not much need for intricate adjustments)
+  // (To simplify processing, as there is no need for such detailed adjustments)
   for (std::vector<int>::iterator it = width.begin(); it != width.end(); ++it) {
-    if (*it < 1 || 63 < *it) {  // The allowable range is 1 msec to 63 msec
+    if (*it < 1 || 63 < *it) {  // The allowable range is 1msec or more and 63msec or less
       throw std::runtime_error("Invalid self_trigger io value.");
     }
   }
-  // Integrate as Low and High need to be written to the register together
+  // Since Low and High need to be written to the register together, they are integrated
   // 1[msec] = 0x0400(1024)
   uint32_t high = width.at(0) * 1024;
   uint32_t low = width.at(1) * 1024;
@@ -448,10 +448,10 @@ std::optional<SelfTriggerSettings> RosParameterPointGreyCameraSystemSetting::Get
   return self_trigger_setting_;
 }
 
-/// @brief Get the trigger mode settings
-/// @return Acquired trigger mode settings
-/// @exception std::runtime_error When the parameter is invalid (mode)
-/// @exception std::runtime_error When the parameter does not exist
+/// @brief Obtain the trigger mode settings
+/// @return Obtained trigger mode settings
+/// @exception std::runtime_error If the parameter is invalid (mode)
+/// @exception std::runtime_error If the parameter does not exist
 std::optional<FlyCapture2::TriggerMode> RosParameterPointGreyCameraSystemSetting::GetTriggerMode() {
   std::optional<FlyCapture2::TriggerMode> trigger_mode;
   {
@@ -491,8 +491,8 @@ std::optional<FlyCapture2::TriggerMode> RosParameterPointGreyCameraSystemSetting
 }
 
 /// @brief Update the trigger mode settings
-/// @exception std::runtime_error When the parameter is invalid (mode)
-/// @exception std::runtime_error When the parameter does not exist
+/// @exception std::runtime_error If the parameter is invalid (mode)
+/// @exception std::runtime_error If the parameter does not exist
 void RosParameterPointGreyCameraSystemSetting::UpdateTriggerMode(int trigger_mode_mode,
                                                                  bool trigger_mode_on_off,
                                                                  int trigger_mode_polarity) {
@@ -532,9 +532,9 @@ void RosParameterPointGreyCameraSystemSetting::UpdateTriggerMode(int trigger_mod
   }
 }
 
-/// @brief Get the trigger delay settings
-/// @return Acquired trigger delay settings
-///         If no setting exists, it returns an invalid value
+/// @brief Obtain the trigger delay settings
+/// @return Obtained trigger delay settings
+///         Returns an invalid value if the setting does not exist
 std::optional<FlyCapture2::TriggerDelay> RosParameterPointGreyCameraSystemSetting::GetTriggerDelay() {
   std::vector<FlyCapture2::Property> properties = GetProperties();
   for (std::vector<FlyCapture2::Property>::iterator it = properties.begin(); it != properties.end(); ++it) {
@@ -545,12 +545,12 @@ std::optional<FlyCapture2::TriggerDelay> RosParameterPointGreyCameraSystemSettin
   throw std::runtime_error("Could not get trigger delay.");
 }
 
-/// @brief Get the image type (monochrome, color) settings
+/// @brief Obtain the image type settings (monochrome, color)
 /// @return Image type
 ///         Returns ImageType::kRgbImage if change_rgb_flag is on
 ///         Returns ImageType::kMonoImage if off
-///         If no setting exists, it returns an invalid value
-/// @exception std::runtime_error When the parameter does not exist
+///         Returns an invalid value if the setting does not exist
+/// @exception std::runtime_error If the parameter does not exist
 std::optional<ImageType> RosParameterPointGreyCameraSystemSetting::GetImageType() {
   if (image_type_) {
     return image_type_;
@@ -570,7 +570,7 @@ std::optional<ImageType> RosParameterPointGreyCameraSystemSetting::GetImageType(
   return image_type;
 }
 
-/// @brief Get 3.3V output settings
+/// @brief Obtain the 3.3V output settings
 /// @return Whether to output or not
 /// @note Output is possible only for Blackfly
 std::optional<bool> RosParameterPointGreyCameraSystemSetting::GetOutputVoltageSetting() {

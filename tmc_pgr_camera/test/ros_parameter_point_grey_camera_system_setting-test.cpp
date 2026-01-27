@@ -25,8 +25,8 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Retrieve Point Grey camera system settings from the parameter server
-///             and test if it can be processed to proper values.
+/// @brief Test if the Point Grey camera system settings can be retrieved from the parameter server and processed as appropriate values
+///
 #include <limits>
 #include <optional>
 #include <string>
@@ -65,7 +65,7 @@ const char* const kParamNamePropertyTemperatureOnOff =  "property.temperature.on
 const char* const kParamNameFrameRate = "frame_rate";
 // Video mode
 const char* const kParamNameVideoMode = "video_mode";
-// format7 detailed setting
+// format7 detailed settings
 const char* const kParamNameFormat7Mode = "format7.mode";
 const char* const kParamNameFormat7OffsetX = "format7.offset_x";
 const char* const kParamNameFormat7OffsetY = "format7.offset_y";
@@ -74,8 +74,8 @@ const char* const kParamNameFormat7Height = "format7.height";
 const char* const kParamNameFormat7PixelFormat = "format7.pixel_format";
 // Color demosaicing algorithm
 const char* const kParamNameSoftwareDemosaicing = "software_demosaicing";
-// Monocular/Stereo trigger
-// No parameter
+// Monocular and stereo trigger
+// No parameters
 // Trigger details for stereo
 const char* const kParamNameSelfTriggerIo = "self_trigger.io";
 const char* const kParamNameSelfTriggerPulseWidth = "self_trigger.pulse_width";
@@ -86,13 +86,13 @@ const char* const kParamNameTriggerModeMode = "trigger_mode.mode";
 const char* const kParamNameTriggerModeOnOff = "trigger_mode.on_off";
 const char* const kParamNameTriggerModePolarity = "trigger_mode.polarity";
 // Trigger delay
-// Included in the property
+// Included in property
 // Gray -> RGB conversion
 const char* const kParamNameChangeRgbFlag = "change_rgb_flag";
-// Blackfly limited to 3.3V output setting
+// Blackfly limited 3.3V output setting
 const char* const kParamNameOutputVoltage = "output_voltage";
 
-// Parameter setting values
+// Parameter setting value
 // Camera ID
 const int kTestCameraId1 = 10000000;
 const int kTestCameraId2 = 20000000;
@@ -107,7 +107,7 @@ const float kTestFrameRate3 = 1.875;
 // Video mode
 const char* const kTestVideoMode1 = "invalid_video_mode";
 const char* const kTestVideoMode2 = "format7";
-// format7 detailed setting
+// format7 detailed settings
 const int kTestFormat7Mode1 = -1;
 const int kTestFormat7Mode2 = 32;
 const int kTestFormat7Mode3 = 0;
@@ -120,8 +120,8 @@ const char* const kTestFormat7PixelFormat2 = "raw8";
 // Color demosaicing
 const char* const kTestSoftwareDemosaicing1 = "invalid_demosaicing";
 const char* const kTestSoftwareDemosaicing2 = "edge_sensing";
-// Monocular/Stereo trigger
-// No parameter
+// Monocular and stereo trigger
+// No parameters
 // Trigger details for stereo
 const int kTestSelfTriggerIo1 = 0;
 const int kTestSelfTriggerIo2 = -1;
@@ -150,7 +150,7 @@ const int kTestTriggerModePolarity4 = 1;
 const bool kTestTriggerDelay = true;
 // Gray -> RGB conversion
 const bool kTestChangeRgbFlag = true;
-// Blackfly limited to 3.3V output setting
+// Blackfly limited 3.3V output setting
 const char* const kTestOutputVoltage1 = "true";
 const int kTestOutputVoltage2 = 1;
 const bool kTestOutputVoltage3 = true;
@@ -158,12 +158,12 @@ const bool kTestOutputVoltage3 = true;
 
 namespace tmc_pgr_camera {
 /// @brief Test fixture for reading Point Grey camera system settings from the parameter server
-/// @note When similar parameters to the configuration file class are prepared on the parameter server,
-///       verify if these values can be correctly converted to maintain the previous settings.
-/// @note Additionally, conduct normal and abnormal value tests
+/// @note When the same parameters as the configuration file class are prepared on the parameter server,
+///       confirm whether they can be correctly converted and configured as before
+/// @note Additionally, perform normal and abnormal value tests
 class RosParameterPointGreyCameraSystemSettingTest : public testing::Test {
  public:
-  /// @brief Contains configuration file class and parameter server class
+  /// @brief Holds configuration file class and parameter server class
   virtual void SetUp() {
     private_node_handle_ = rclcpp::Node::make_shared("ros_param_setting_test");
     std::string config_path("test/config/default.yml");
@@ -237,17 +237,17 @@ class RosParameterPointGreyCameraSystemSettingTest : public testing::Test {
     private_node_handle_->declare_parameter(kParamNameOutputVoltage, false);
   }
 
-  /// @brief Set up parameters enough to instantiate the minimum configuration class before finishing
-  /// @note Not required in ROS 2 as parameters became node-specific
+  /// @brief Set parameters that allow the minimum configuration class to be instantiated before ending
+  /// @note Unnecessary as parameters are unique to each node in ROS 2
   virtual void TearDown() {
     // private_node_handle_->set_parameters({
     //   rclcpp::Parameter(kParamNameFrameRate, kTestFrameRate1),
     //   rclcpp::Parameter(kParamNameVideoMode, kTestVideoMode2),
     // });
   }
-  /// @brief Returns reference to configuration file class
+  /// @brief Returns a reference to the configuration file class
   inline std::shared_ptr<YamlPointGreyCameraSystemSetting> get_setting_file_ptr() const { return setting_file_; }
-  /// @brief Returns reference to parameter server class
+  /// @brief Returns a reference to the parameter server class
   inline std::shared_ptr<RosParameterPointGreyCameraSystemSetting>
       get_ros_param_setting_ptr() const { return ros_param_setting_; }
   /// @brief Returns private node handle
@@ -393,7 +393,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, CompareSelfTrigger) {
   ASSERT_EQ(self_trigger_enable_ros, self_trigger_enable_yaml);
 }
 
-/// @brief Compare self-trigger properties
+/// @brief Compare self-trigger property
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, CompareSelfTriggerSettings) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -543,7 +543,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSerialValid)
 }
 
 /// @brief Normal and abnormal property values
-/// @note Since there is no expected value, check whether it can be obtained or not
+/// @note The expected value is not fixed, so check whether it can be obtained or not
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfProperties) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -588,7 +588,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfFrameRateVal
   ASSERT_NEAR(frame_rate->second, kTestFrameRate1, std::numeric_limits<float>::epsilon());
 }
 
-/// @brief Frame rate (invalid video mode combination)
+/// @brief Frame rate (invalid combination with video mode)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfFrameRateInvalidVideoMode) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -843,11 +843,11 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSoftDemosaic
   ASSERT_EQ(soft_demosaicing, FlyCapture2::EDGE_SENSING);
 }
 
-/// @brief Monocular and stereo shutter settings (empty)
+/// @brief Shutter settings for monocular and stereo (empty)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfShutterEmpty) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
-  // NOTE: Cannot undeclare in ROS 2, so set to empty
+  // NOTE: Set to empty as ROS 2 cannot undeclare
   std::vector<int> camera_ids;
   get_private_node_handle()->set_parameter(rclcpp::Parameter(kParamNameCamera, camera_ids));
 
@@ -856,7 +856,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfShutterEmpty
   ASSERT_ANY_THROW(ros_param_setting->IsSelfTriggerEnabled());
 }
 
-/// @brief Monocular shutter settings (normal)
+/// @brief Shutter settings for monocular (normal)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfShutterMonoValid) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -870,7 +870,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfShutterMonoV
   EXPECT_FALSE(ros_param_setting->IsSelfTriggerEnabled());
 }
 
-/// @brief Stereo shutter settings (normal)
+/// @brief Shutter settings for stereo (normal)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfShutterStereoValid) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -885,7 +885,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfShutterStere
   EXPECT_TRUE(ros_param_setting->IsSelfTriggerEnabled());
 }
 
-/// @brief Stereo shutter detailed IO settings (empty)
+/// @brief Detailed shutter settings IO for stereo (empty)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingIOEmpty) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -894,7 +894,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed IO settings (invalid length)
+/// @brief Detailed shutter settings IO for stereo (invalid length)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingIOInvalidLength) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -909,7 +909,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed IO settings (invalid value)
+/// @brief Detailed shutter settings IO for stereo (invalid value)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingIOInvalidValue) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -923,7 +923,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed IO settings (normal)
+/// @brief Detailed shutter settings IO for stereo (normal)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingIOValid) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -940,7 +940,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_EQ(selftrigger_setting->out_io, kTestSelfTriggerIo1);
 }
 
-/// @brief Stereo shutter detailed pulse width (empty)
+/// @brief Detailed shutter settings pulse width for stereo (empty)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPulseWidthEmpty) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -949,7 +949,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed pulse width (invalid length)
+/// @brief Detailed shutter settings pulse width for stereo (invalid length)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPulseWidthInvalidLength) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -964,7 +964,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed pulse width (invalid value)
+/// @brief Detailed shutter settings pulse width for stereo (invalid value)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPulseWidthInvalidValue) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -981,7 +981,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed pulse width (normal)
+/// @brief Detailed shutter settings pulse width for stereo (normal)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPulseWidthValid) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -997,7 +997,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_EQ(selftrigger_setting->pulse_figure, kExpectedSelfTriggerPulseWidth);
 }
 
-/// @brief Stereo shutter detailed pulse count (empty)
+/// @brief Detailed shutter settings pulse count for stereo (empty)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPulseNumEmpty) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1006,7 +1006,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed pulse count (invalid value)
+/// @brief Detailed shutter settings pulse count for stereo (invalid value)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPulseNumInvalidValue) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1021,7 +1021,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed pulse count (normal)
+/// @brief Detailed shutter settings pulse count for stereo (normal)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPulseNumValid) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1035,7 +1035,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_EQ(selftrigger_setting->number_of_pulse, kTestSelfTriggerNumberOfPulse3);
 }
 
-/// @brief Stereo shutter detailed pulse polarity (negative value)
+/// @brief Detailed shutter settings pulse polarity for stereo (negative value)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPolarityInvalidMinusValue) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1047,7 +1047,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed pulse polarity (out-of-range positive value)
+/// @brief Detailed shutter settings pulse polarity for stereo (out-of-range positive value)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPolarityInvalidLargeValue) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1059,7 +1059,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_ANY_THROW(ros_param_setting->GetSelfTriggerSettings());
 }
 
-/// @brief Stereo shutter detailed pulse polarity (normal 1)
+/// @brief Detailed shutter settings pulse polarity for stereo (normal 1)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPolarityValid1) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1073,7 +1073,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerS
   ASSERT_EQ(selftrigger_setting->polarity, kTestSelfTriggerPolarity3);
 }
 
-/// @brief Stereo shutter detailed pulse polarity (normal 2)
+/// @brief Detailed shutter settings pulse polarity for stereo (normal 2)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfSelfTriggerSettingPolarityValid2) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1125,7 +1125,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModeM
   ASSERT_EQ(trigger_mode->mode, kTestTriggerModeMode3);
 }
 
-/// @brief Trigger mode On/Off setting (empty)
+/// @brief Trigger mode setting On/Off (empty)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModeOnOffEmpty) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1134,7 +1134,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModeO
   ASSERT_ANY_THROW(ros_param_setting->GetTriggerMode());
 }
 
-/// @brief Trigger mode On/Off setting (normal)
+/// @brief Trigger mode setting On/Off (normal)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModeOnOffValid) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1148,7 +1148,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModeO
   ASSERT_TRUE(trigger_mode->onOff);
 }
 
-/// @brief Trigger mode polarity setting (negative value)
+/// @brief Trigger mode setting polarity (negative value)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModePolarityInvalidMinus) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1160,7 +1160,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModeP
   ASSERT_ANY_THROW(ros_param_setting->GetTriggerMode());
 }
 
-/// @brief Trigger mode polarity setting (invalid positive value)
+/// @brief Trigger mode setting polarity (invalid positive value)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModePolarityInvalidLargeValue) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1172,7 +1172,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModeP
   ASSERT_ANY_THROW(ros_param_setting->GetTriggerMode());
 }
 
-/// @brief Trigger mode polarity setting (normal 1)
+/// @brief Trigger mode setting polarity (normal 1)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModePolarityValid1) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1186,7 +1186,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModeP
   ASSERT_EQ(trigger_mode->polarity, kTestTriggerModePolarity3);
 }
 
-/// @brief Trigger mode polarity setting (normal 2)
+/// @brief Trigger mode setting polarity (normal 2)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerModePolarityValid2) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1223,7 +1223,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfTriggerDelay
   ASSERT_TRUE(trigger_delay->onOff);
 }
 
-/// @brief Gray->RGB conversion enabled setting (empty)
+/// @brief Gray->RGB conversion enable setting (empty)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfImageTypeEmpty) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1232,7 +1232,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfImageTypeEmp
   ASSERT_ANY_THROW(ros_param_setting->GetImageType());
 }
 
-/// @brief Gray->RGB conversion enabled setting (normal)
+/// @brief Gray->RGB conversion enable setting (normal)
 TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfImageTypeValid) {
   // Setup
   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1247,7 +1247,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfImageTypeVal
 }
 
 /// @brief 3.3V output setting (abnormal 1)
-/// @note In ROS 2, assignment of a different type to statically typed parameter is not possible
+/// @note In ROS 2, it is not possible to assign a different type to a statically typed parameter
 // TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfOutputVoltageInvalid1) {
 //   // Setup
 //   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();
@@ -1260,7 +1260,7 @@ TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfImageTypeVal
 // }
 
 /// @brief 3.3V output setting (abnormal 2)
-/// @note In ROS 2, assignment of a different type to statically typed parameter is not possible
+/// @note In ROS 2, it is not possible to assign a different type to a statically typed parameter
 // TEST_F(RosParameterPointGreyCameraSystemSettingTest, ValueCheckingOfOutputVoltageInvalid2) {
 //   // Setup
 //   std::shared_ptr<RosParameterPointGreyCameraSystemSetting> ros_param_setting = get_ros_param_setting_ptr();

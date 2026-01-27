@@ -64,10 +64,10 @@ class CameraNodelet : public rclcpp::Node {
   bool ControlCameraCallback(const std::shared_ptr<tmc_vision_msgs::srv::ControlCamera::Request> req,
                              std::shared_ptr<tmc_vision_msgs::srv::ControlCamera::Response> res);
 
-  /// Convert camera settings from parameter to YAML and wait for setting changes
+  /// Convert camera settings from parameter to YAML and wait for configuration changes
   void ChangeCameraProperties();
 
-  /// Callback when there is a change in the parameter
+  /// Callback when there is a change in parameter
   rcl_interfaces::msg::SetParametersResult SetParameterCallback(const std::vector<rclcpp::Parameter>& params);
 
  private:
@@ -75,9 +75,9 @@ class CameraNodelet : public rclcpp::Node {
   std::shared_ptr<pluginlib::ClassLoader<ICameraSystemPluginBase> > camera_loader_;
   /// Camera object
   std::shared_ptr<ICameraSystemPluginBase> camera_;
-  /// Camera image distributor
+  /// Camera image publisher
   std::shared_ptr<CameraImagesPublisher> camera_images_publisher_;
-  /// Service that provides control for starting/stopping capture
+  /// Service providing control for starting/stopping capture
   rclcpp::Service<tmc_vision_msgs::srv::ControlCamera>::SharedPtr control_camera_service_;
   /// Capture thread
   std::shared_ptr<std::thread> capture_thread_;
@@ -85,15 +85,15 @@ class CameraNodelet : public rclcpp::Node {
   bool can_stop_capture_thread_;
   /// Mutex
   std::shared_mutex access_;
-  /// Reference to the camera configuration interface
+  /// Reference to camera settings interface
   std::shared_ptr<IPointGreyCameraSystemSetting> camera_setting_;
   /// dynamic_reconfigure server
   // std::shared_ptr<dynamic_reconfigure::Server <CameraPropertyConfig> > dynamic_reconfigure_server_;
-  /// Handle for monitoring changes in the parameter
+  /// Handle for monitoring changes in parameter
   rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr set_parameters_handle_;
-  /// Change camera settings received in param via YAML
+  /// Camera settings received via param are changed through YAML
   YAML::Node camera_properties_;
-  /// Determine that there was an update in the parameter
+  /// Determine that there has been an update to the parameter
   bool property_changed_;
 };
 

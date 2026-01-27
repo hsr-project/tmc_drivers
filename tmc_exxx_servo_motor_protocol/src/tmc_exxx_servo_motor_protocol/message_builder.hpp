@@ -47,7 +47,7 @@ class MessageBuilder {
   /// Destructor
   ~MessageBuilder() {}
 
-  /// Add message
+  /// Add a message
   /// @param [in] name Name
   /// @param [in] message Description
   void Append(const std::string& name, const std::string& message) {
@@ -58,7 +58,7 @@ class MessageBuilder {
     dst_message_.append("); ");
   }
 
-  /// Generate message
+  /// Generate a message
   /// @param
   std::string Build() const { return dst_message_; }
 

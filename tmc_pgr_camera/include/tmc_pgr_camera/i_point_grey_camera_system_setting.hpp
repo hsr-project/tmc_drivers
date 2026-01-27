@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Interface to load configuration file for Point Grey camera system
+/// @brief Interface for loading configuration files of the Point Grey camera system
 #ifndef TMC_PGR_CAMERA_I_POINT_GREY_CAMERA_SYSTEM_SETTING_HPP_
 #define TMC_PGR_CAMERA_I_POINT_GREY_CAMERA_SYSTEM_SETTING_HPP_
 
@@ -41,13 +41,13 @@ DAMAGE.
 
 namespace tmc_pgr_camera {
 
-/// @brief Configuration structure for self-trigger
+/// @brief Configuration structure for self-triggering
 typedef struct SelfTriggerSettings {
-  /// Register address for input
+  /// Input register address
   uint32_t in_io;
-  /// Register address for output
+  /// Output register address
   uint32_t out_io;
-  /// Self-trigger pulse command
+  /// Self-trigger pulse transmission command
   uint32_t pulse_figure;
   /// Number of pulses
   uint32_t number_of_pulse;
@@ -55,7 +55,7 @@ typedef struct SelfTriggerSettings {
   uint32_t polarity;
 } SelfTriggerSettings;
 
-/// @brief Enumeration representing the type of image
+/// @brief Enumeration representing image types
 enum ImageType {
   /// Monochrome image
   kMonoImage,
@@ -63,50 +63,50 @@ enum ImageType {
   kRgbImage
 };
 
-/// @brief Configuration loading class for Point Grey camera system
+/// @brief Class for loading settings of the Point Grey camera system
 class IPointGreyCameraSystemSetting {
  public:
-  /// Retrieve an array of serial numbers for cameras used in the camera system
+  /// Retrieve an array of serial numbers of cameras used in the camera system
   virtual std::vector<uint32_t> GetSerialNumbers() = 0;
 
-  /// Load array of camera properties
+  /// Load an array of camera properties
   virtual std::vector<FlyCapture2::Property> GetProperties() = 0;
 
-  /// Get frame rate
+  /// Retrieve the frame rate
   virtual std::optional<std::pair<FlyCapture2::FrameRate, float> >
       GetFrameRate(const FlyCapture2::VideoMode video_mode) = 0;
 
-  /// Get video mode
+  /// Retrieve the video mode
   virtual std::optional<FlyCapture2::VideoMode> GetVideoMode() = 0;
 
-  /// Get Format7 settings
+  /// Retrieve the Format7 settings
   virtual std::optional<FlyCapture2::Format7ImageSettings> GetFormat7Setting() = 0;
 
-  /// Retrieve software demosaicing settings
+  /// Retrieve the software demosaicing settings
   virtual std::optional<FlyCapture2::ColorProcessingAlgorithm> GetSoftDemosaicing() = 0;
 
-  /// Verify if software trigger is enabled
+  /// Check if the software trigger is enabled
   virtual bool IsSoftwareTriggerEnabled() = 0;
 
-  /// Verify if self-trigger is enabled
+  /// Check if the self-trigger is enabled
   virtual bool IsSelfTriggerEnabled() = 0;
 
-  /// Retrieve self-trigger settings
+  /// Retrieve the self-trigger settings
   virtual std::optional<SelfTriggerSettings> GetSelfTriggerSettings() = 0;
 
-  /// Retrieve trigger mode settings
+  /// Retrieve the trigger mode settings
   virtual std::optional<FlyCapture2::TriggerMode> GetTriggerMode() = 0;
 
-  /// Retrieve trigger delay settings
+  /// Retrieve the trigger delay settings
   virtual std::optional<FlyCapture2::TriggerDelay> GetTriggerDelay() = 0;
 
   /// Create trigger mode settings
   virtual void UpdateTriggerMode(int trigger_mode_mode, bool trigger_mode_on_off, int trigger_mode_polarity) = 0;
 
-  /// Retrieve image type settings (monochrome, color)
+  /// Retrieve the image type settings (monochrome, color)
   virtual std::optional<ImageType> GetImageType() = 0;
 
-  /// Retrieve 3.3V output settings
+  /// Retrieve the 3.3V output settings
   virtual std::optional<bool> GetOutputVoltageSetting() = 0;
 };
 
