@@ -36,15 +36,15 @@ DAMAGE.
 
 namespace tmc_pgr_camera {
 
-/// @brief Structure representing camera image
+/// @brief Structure representing the camera image
 typedef struct Image {
   /// Camera image
   cv::Mat image;
-  /// Time when camera image was acquired
+  /// Timestamp when the camera image was captured
   std::chrono::system_clock::time_point time;
 } Image;
 
-// Pointer to structure representing camera image
+// Pointer to the structure representing the camera image
 typedef std::shared_ptr<Image> ImagePtr;
 
 }  // end of namespace tmc_pgr_camera

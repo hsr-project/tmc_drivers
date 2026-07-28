@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Interface for loading configuration files of the Point Grey camera system
+/// @brief      Interface for loading configuration files for the Point Grey camera system
 #ifndef TMC_PGR_CAMERA_I_POINT_GREY_CAMERA_SYSTEM_SETTING_HPP_
 #define TMC_PGR_CAMERA_I_POINT_GREY_CAMERA_SYSTEM_SETTING_HPP_
 
@@ -66,7 +66,7 @@ enum ImageType {
 /// @brief Class for loading settings of the Point Grey camera system
 class IPointGreyCameraSystemSetting {
  public:
-  /// Retrieve an array of serial numbers of cameras used in the camera system
+  /// Retrieve an array of serial numbers for cameras used in the camera system
   virtual std::vector<uint32_t> GetSerialNumbers() = 0;
 
   /// Load an array of camera properties
@@ -79,10 +79,10 @@ class IPointGreyCameraSystemSetting {
   /// Retrieve the video mode
   virtual std::optional<FlyCapture2::VideoMode> GetVideoMode() = 0;
 
-  /// Retrieve the Format7 settings
+  /// Retrieve Format7 settings
   virtual std::optional<FlyCapture2::Format7ImageSettings> GetFormat7Setting() = 0;
 
-  /// Retrieve the software demosaicing settings
+  /// Retrieve software demosaicing settings
   virtual std::optional<FlyCapture2::ColorProcessingAlgorithm> GetSoftDemosaicing() = 0;
 
   /// Check if the software trigger is enabled
@@ -91,22 +91,22 @@ class IPointGreyCameraSystemSetting {
   /// Check if the self-trigger is enabled
   virtual bool IsSelfTriggerEnabled() = 0;
 
-  /// Retrieve the self-trigger settings
+  /// Retrieve self-trigger settings
   virtual std::optional<SelfTriggerSettings> GetSelfTriggerSettings() = 0;
 
-  /// Retrieve the trigger mode settings
+  /// Retrieve trigger mode settings
   virtual std::optional<FlyCapture2::TriggerMode> GetTriggerMode() = 0;
 
-  /// Retrieve the trigger delay settings
+  /// Retrieve trigger delay settings
   virtual std::optional<FlyCapture2::TriggerDelay> GetTriggerDelay() = 0;
 
   /// Create trigger mode settings
   virtual void UpdateTriggerMode(int trigger_mode_mode, bool trigger_mode_on_off, int trigger_mode_polarity) = 0;
 
-  /// Retrieve the image type settings (monochrome, color)
+  /// Retrieve image type settings (monochrome, color)
   virtual std::optional<ImageType> GetImageType() = 0;
 
-  /// Retrieve the 3.3V output settings
+  /// Retrieve 3.3V output settings
   virtual std::optional<bool> GetOutputVoltageSetting() = 0;
 };
 

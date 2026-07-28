@@ -31,7 +31,7 @@ DAMAGE.
 
 #include <tmc_exxx_servo_motor_protocol/load_control_table.hpp>
 
-// control_table.csv is in home
+// control_table.csv exists in home
 // md5 matches
 TEST(LoadControlTableTest, SucceedByHomeTable) {
   char* str_result;
@@ -54,7 +54,7 @@ TEST(LoadControlTableTest, SucceedByHomeTable) {
       selected_path);
 }
 
-// control_table.csv is in home
+// control_table.csv exists in home
 // md5 does not match
 TEST(LoadControlTableTest, FailByUnmatchHomeTable) {
   std::string package_path;
@@ -69,8 +69,8 @@ TEST(LoadControlTableTest, FailByUnmatchHomeTable) {
       package_path, hw_table.GetMd5Sum(), table, selected_path));
 }
 
-// control_table.csv is not in home
-// control_table.csv is in the directory for each version
+// control_table.csv does not exist in home
+// control_table.csv exists in the directory for each version
 // md5 matches
 TEST(LoadControlTableTest, SucceedByPackagePathTable1) {
   std::string package_path;
@@ -87,8 +87,8 @@ TEST(LoadControlTableTest, SucceedByPackagePathTable1) {
   EXPECT_EQ("test_load_control_table/control_tables/v0.7.0/control_table.csv", selected_path);
 }
 
-// control_table.csv is not in home
-// control_table.csv is in the directory for each version
+// control_table.csv does not exist in home
+// control_table.csv exists in the directory for each version
 // md5 matches
 TEST(LoadControlTableTest, SucceedByPackagePathTable2) {
   std::string package_path;
@@ -105,8 +105,8 @@ TEST(LoadControlTableTest, SucceedByPackagePathTable2) {
   EXPECT_EQ("test_load_control_table/control_tables/v0.6.0/control_table.csv", selected_path);
 }
 
-// control_table.csv is not in home
-// control_table.csv is in the directory for each version
+// control_table.csv does not exist in home
+// control_table.csv exists in the directory for each version
 // md5 does not match
 TEST(LoadControlTableTest, FailByNothingMatchedTable1) {
   std::string package_path;
@@ -121,9 +121,9 @@ TEST(LoadControlTableTest, FailByNothingMatchedTable1) {
       package_path, hw_table.GetMd5Sum(), table, selected_path));
 }
 
-// control_table.csv is not in home
-// control_table.csv is in the directory for each version
-// control_table.csv is in the parent directory of the directory for each version
+// control_table.csv does not exist in home
+// control_table.csv exists in the directory for each version
+// control_table.csv exists in the parent directory of the directory for each version
 // md5 of control_table.csv in the parent directory matches
 TEST(LoadControlTableTest, FailByNothingMatchedTable2) {
   std::string package_path;
@@ -138,8 +138,8 @@ TEST(LoadControlTableTest, FailByNothingMatchedTable2) {
       package_path, hw_table.GetMd5Sum(), table, selected_path));
 }
 
-// control_table.csv is not in home
-// directory for each version does not exist
+// control_table.csv does not exist in home
+// the directory for each version does not exist
 TEST(LoadControlTableTest, FailByNoneExistDir) {
   std::string package_path;
   std::string selected_path;

@@ -38,19 +38,20 @@ DAMAGE.
 
 namespace tmc_imu_diag_updater {
 
-// Namespace for the validator
+// Validator namespace
 namespace verifier {
 
 using tmc_diag_updater_common::verifier::Interface;
 
-// Class to verify if all angular velocity and acceleration values are zero
-// Needed because adi_driver rarely publishes valid values
-class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::Ptr> {
+// Class to verify whether angular velocity and acceleration values are all zero
+// Needed because adi_driver occasionally does not publish valid values
+class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::SharedPtr> {
  public:
-  static Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr Create(rclcpp::Node::SharedPtr node) {
+  static Interface<sensor_msgs::msg::Imu::SharedPtr>::SharedPtr Create(rclcpp::Node::SharedPtr node) {
     const double significant_threshold =
         node->declare_parameter<double>("verifiers.zero_velocity_and_acceleration.significant_threshold", 0.00001);
-    return Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr(new ZeroVelocityAndAcceleration(significant_threshold));
+    return Interface<sensor_msgs::msg::Imu::SharedPtr>::SharedPtr(
+        new ZeroVelocityAndAcceleration(significant_threshold));
   }
 
   explicit ZeroVelocityAndAcceleration(double significant_threshold) : significant_threshold_(significant_threshold) {
@@ -59,8 +60,8 @@ class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::Ptr>
     }
   }
 
-  virtual void UpdateSummary(const sensor_msgs::msg::Imu::Ptr& stamped_msg) {
-    // If values cannot be checked, it is determined that it is not the job of this class, and it is not updated
+  virtual void UpdateSummary(const sensor_msgs::msg::Imu::SharedPtr& stamped_msg) {
+    // If values cannot be checked, it is determined that this is not the job of this class, and no update is made
     if (stamped_msg == nullptr) {
       return;
     }
@@ -79,7 +80,7 @@ class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::Ptr>
       }
     }
 
-    // At this point, it is determined that there are no significant values
+    // At this point, it is determined that no significant values are included
     this->SetAs(DiagnosticStatus::ERROR, "Velocities and accelerations are zero");
   }
 
@@ -99,25 +100,25 @@ class ZeroVelocityAndAcceleration : public Interface<sensor_msgs::msg::Imu::Ptr>
   geometry_msgs::msg::Vector3 actual_linear_acceleration_;
 };
 
-// Class to verify if the same value is not repeated consecutively
-// Needed because there were cases where adi_driver values froze (e.g., when USB connection was disconnected)
-// All property values may freeze, or only some may
-// (It is unknown which property values freeze, but such a phenomenon occurred)
-class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::Ptr> {
+// Class to verify whether the same value is not repeated consecutively
+// Needed because adi_driver values sometimes freeze (e.g., when USB connection is disconnected)
+// All property values may freeze, or only some of them
+// (It is unknown which property values freeze, but such phenomena have occurred)
+class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::SharedPtr> {
  public:
-  static Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr Create(rclcpp::Node::SharedPtr node) {
+  static Interface<sensor_msgs::msg::Imu::SharedPtr>::SharedPtr Create(rclcpp::Node::SharedPtr node) {
     const int properties_num = node->declare_parameter<int>("verifiers.contiguous_same_value.properties_num", 3);
     const int contiguous_threshold =
         node->declare_parameter<int>("verifiers.contiguous_same_value.contiguous_threshold", 5);
-    return Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr(
+    return Interface<sensor_msgs::msg::Imu::SharedPtr>::SharedPtr(
         new ContiguousSameValue(properties_num, contiguous_threshold));
   }
 
   // If the specified number of properties freeze consecutively for the specified number of times, it is considered an error
-  // - Specification of the number of properties: Since it is unknown which properties freeze, it was decided to do it by number
-  // - Specification of consecutive times: The probability of the same value occurring consecutively is not zero even under normal conditions, so it was made configurable
-  //                       Set parameters for that purpose
-  //                       It is common to set the confirmation cycle to exceed the reception cycle, so there is a possibility of confirming the same value consecutively multiple times
+  // - Specification of the number of properties: Since it is unknown which properties freeze, it was decided to use a count
+  // - Specification of consecutive occurrences: The probability of the same value occurring consecutively is not zero even under normal conditions, so it was made configurable
+  //                       Parameters for this purpose are set
+  //                       Since it is common to set the verification cycle to exceed the reception cycle, there is a possibility of confirming the same value consecutively multiple times
   //                       Therefore, it is recommended to set this parameter sufficiently large
   ContiguousSameValue(const uint32_t property_num_threshold, const uint32_t contiguous_count_threshold)
       : property_num_threshold_(property_num_threshold),
@@ -132,7 +133,7 @@ class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::Ptr> {
     }
   }
 
-  virtual void UpdateSummary(const sensor_msgs::msg::Imu::Ptr& stamped_msg) {
+  virtual void UpdateSummary(const sensor_msgs::msg::Imu::SharedPtr& stamped_msg) {
     if (stamped_msg == nullptr) {
       return;
     }
@@ -169,7 +170,7 @@ class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::Ptr> {
     static const int kPropertyNum = 6;
 
     std::optional<uint32_t> CalcSamePropertyNum(const sensor_msgs::msg::Imu& msg) {
-      // Returns an invalid value if there is no previous value
+      // If there is no previous value, return an invalid value
       if (prev_msg_ == std::nullopt) {
         prev_msg_ = msg;
         return std::nullopt;
@@ -206,17 +207,17 @@ class ContiguousSameValue : public Interface<sensor_msgs::msg::Imu::Ptr> {
   SamePropertyCounter same_property_counter_;
 };
 
-// Class to verify if the norm of acceleration at startup is within the threshold
-// Needed because adi_driver rarely publishes valid values
-class InitialAccelerationNorm : public Interface<sensor_msgs::msg::Imu::Ptr> {
+// Class to verify whether the norm of acceleration at startup is within the threshold
+// Needed because adi_driver occasionally does not publish valid values
+class InitialAccelerationNorm : public Interface<sensor_msgs::msg::Imu::SharedPtr> {
  public:
-  static Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr Create(rclcpp::Node::SharedPtr node) {
+  static Interface<sensor_msgs::msg::Imu::SharedPtr>::SharedPtr Create(rclcpp::Node::SharedPtr node) {
     const int sample_size = node->declare_parameter<int>("verifiers.initial_acceleration_norm.sample_size", 100);
     const double acc_norm_min =
       node->declare_parameter<double>("verifiers.initial_acceleration_norm.acc_norm_min", 9.5);
     const double acc_norm_max =
       node->declare_parameter<double>("verifiers.initial_acceleration_norm.acc_norm_max", 11.5);
-    return Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr(
+    return Interface<sensor_msgs::msg::Imu::SharedPtr>::SharedPtr(
       new InitialAccelerationNorm(sample_size, acc_norm_min, acc_norm_max, node));
   }
 
@@ -240,12 +241,12 @@ class InitialAccelerationNorm : public Interface<sensor_msgs::msg::Imu::Ptr> {
 
   void ResetSampleCount(std_msgs::msg::Empty::SharedPtr msg) { sample_count_ = 0; }
 
-  virtual void UpdateSummary(const sensor_msgs::msg::Imu::Ptr& stamped_msg) {
-    // If values cannot be checked, it is determined that it is not the job of this class, and it is not updated
+  virtual void UpdateSummary(const sensor_msgs::msg::Imu::SharedPtr& stamped_msg) {
+    // If values cannot be checked, it is determined that this is not the job of this class, and no update is made
     if (stamped_msg == nullptr) {
       return;
     }
-    // If the number of verified topics reaches the sample size, it is not updated
+    // If the number of verified topics reaches the sample size, no update is made
     if (sample_size_ <= sample_count_) {
       return;
     }
@@ -280,9 +281,9 @@ class InitialAccelerationNorm : public Interface<sensor_msgs::msg::Imu::Ptr> {
 };
 
 // Create an IMU validator
-// Add a branch here if a new Interface derivative is created
-Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr Create(std::string type, rclcpp::Node::SharedPtr node) {
-  typename Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr ptr;
+// If a new Interface derivative is created, add a branch here
+Interface<sensor_msgs::msg::Imu::SharedPtr>::SharedPtr Create(std::string type, rclcpp::Node::SharedPtr node) {
+  typename Interface<sensor_msgs::msg::Imu::SharedPtr>::SharedPtr ptr;
   if (type == "zero_velocity_and_acceleration") {
     ptr = ZeroVelocityAndAcceleration::Create(node);
   } else if (type == "contiguous_same_value") {
@@ -290,7 +291,7 @@ Interface<sensor_msgs::msg::Imu::Ptr>::SharedPtr Create(std::string type, rclcpp
   } else if (type == "initial_acceleration_norm") {
     ptr = InitialAccelerationNorm::Create(node);
   } else {
-    ptr = tmc_diag_updater_common::verifier::Create<sensor_msgs::msg::Imu::Ptr>(type, node);
+    ptr = tmc_diag_updater_common::verifier::Create<sensor_msgs::msg::Imu::SharedPtr>(type, node);
   }
   return ptr;
 }

@@ -163,7 +163,7 @@ class CyclicImuPublisher {
   IDummySensorTime::SharedPtr sensor_time_;
 };
 
-// Do not use message_filters::Cache as it does not address the specific needs
+// Do not use message_filters::Cache as it doesn't meet specific needs
 class DiagCacheSubscriber {
  public:
   using SharedPtr = std::shared_ptr<DiagCacheSubscriber>;

@@ -34,16 +34,16 @@ DAMAGE.
 
 namespace tmc_exxx_servo_motor_protocol {
 
-/// @brief Loads the control_table with a matching version and returns its path
+/// @brief Loads the control_table matching the version and returns its path
 /// @param[in] package_path Path of the package
-/// @param[in] hw_hash md5 of the control_table (hardware)
+/// @param[in] hw_hash MD5 of the control_table (hardware)
 /// @param[out] control_table_out control_table object
 /// @param[out] selected_path_out Path of the selected control_table
 /// @return bool Returns true if the load is successful
 /// @par Behavior
-/// - Loads the control_table if it exists in the home
+/// - Loads the control_table if it exists in the home directory
 /// - If not, loads the control_table managed in directories by version
-/// - Returns the path of the control_table with a matching md5
+/// - Returns the path of the control_table with matching MD5
 bool LoadControlTable(const std::string& package_path, const std::vector<uint8_t>& hw_hash,
                       ControlTable& control_table_out, std::string& selected_path_out) {
   boost::system::error_code error;
@@ -52,7 +52,7 @@ bool LoadControlTable(const std::string& package_path, const std::vector<uint8_t
   std::string full_path = std::string(home_path) + "/.control_table/control_table.csv";
   const char* csv_path = full_path.c_str();
 
-  // When the control_table is in the home
+  // When the control_table exists in the home directory
   if (boost::filesystem::exists(csv_path, error)) {
     if (control_table_out.Load(csv_path) == ControlTable::kSuccess) {
       if (hw_hash == control_table_out.GetMd5Sum()) {
@@ -60,7 +60,7 @@ bool LoadControlTable(const std::string& package_path, const std::vector<uint8_t
         return true;
       }
     }
-    // When it is in directories managed by control_table version
+    // When the control_table is in directories managed by version
   } else {
     boost::filesystem::path file_path = package_path + "/control_tables";
     if (!boost::filesystem::exists(file_path)) {

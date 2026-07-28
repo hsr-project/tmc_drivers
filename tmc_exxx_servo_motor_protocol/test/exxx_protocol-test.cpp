@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file  hsr_protocol-test.cpp
-/// @brief Test of ExxxProtocol
+/// @brief Test for ExxxProtocol
 #include <string>
 #include <vector>
 
@@ -39,7 +39,7 @@ DAMAGE.
 using tmc_exxx_servo_motor_protocol::ExxxProtocol;
 
 // Custom plain C array matcher
-// Might not be needed if the version of gmock is upgraded
+// Might not be needed if gmock version is updated
 MATCHER_P2(ArrayEq, value, size, "") {
   bool match = true;
   for (uint32_t i = 0; i < size; ++i) {
@@ -50,7 +50,7 @@ MATCHER_P2(ArrayEq, value, size, "") {
   return true;
 }
 
-/// Mock of the communication interface with the device
+/// Mock for communication interface with the device
 class MockNetwork : public tmc_exxx_servo_motor_protocol::INetwork {
  public:
   MOCK_METHOD4(Send, boost::system::error_code(uint8_t, uint8_t, const uint8_t*, uint16_t));

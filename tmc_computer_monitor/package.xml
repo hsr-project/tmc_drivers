@@ -1,0 +1,22 @@
+<package format="3">
+  <name>tmc_computer_monitor</name>
+  <version>3.0.0</version>
+  <description>The tmc_computer_monitor package</description>
+  <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
+  <license>BSD 3-clause Clear License</license>
+
+  <depend>rclpy</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>lm-sensors</depend>
+  <depend>net-tools</depend>
+  <depend>sysstat</depend>
+  <depend>usbutils</depend>
+  <depend>wireless-tools</depend>
+  <depend>diagnostic_aggregator</depend>
+  <test_depend>python3-pytest</test_depend>
+  <test_depend>launch_testing</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

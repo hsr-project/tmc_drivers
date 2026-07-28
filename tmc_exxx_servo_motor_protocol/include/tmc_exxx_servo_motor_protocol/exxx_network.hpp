@@ -84,10 +84,10 @@ class ExxxNetwork : private boost::noncopyable, public INetwork {
   int32_t timeout_;
   int32_t sleep_tick_;
 
-  /// Send/receive buffer (one packet)
+  /// Transmit and receive buffer (one packet)
   std::array<uint8_t, 260> buffer_;
 
-  /// Subcontractor called only from construct
+  /// Subroutine called only from the constructor
   void Init(std::string device_name, boost::system::error_code& error_out, bool is_usb_rs485);
 
   rclcpp::Logger logger_;

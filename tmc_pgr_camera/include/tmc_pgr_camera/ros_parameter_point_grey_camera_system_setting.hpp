@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief      Retrieve the Point Grey camera system settings from the parameter server
+/// @brief Retrieve Point Grey camera system settings from the parameter server
 #ifndef TMC_PGR_CAMERA_ROS_PARAMETER_POINT_GREY_CAMERA_SYSTEM_SETTING_HPP_
 #define TMC_PGR_CAMERA_ROS_PARAMETER_POINT_GREY_CAMERA_SYSTEM_SETTING_HPP_
 #include <optional>
@@ -40,16 +40,16 @@ DAMAGE.
 
 namespace tmc_pgr_camera {
 
-/// @brief Class to retrieve the Point Grey camera system settings from the ROS parameter server
+/// @brief Class to retrieve Point Grey camera system settings from the ROS parameter server
 class RosParameterPointGreyCameraSystemSetting : public IPointGreyCameraSystemSetting {
  public:
   /// Constructor
   explicit RosParameterPointGreyCameraSystemSetting(rclcpp::Node::SharedPtr node_handle);
 
-  /// Retrieve the array of serial numbers for the cameras used in the camera system
+  /// Retrieve an array of serial numbers for cameras used in the camera system
   virtual std::vector<uint32_t> GetSerialNumbers();
 
-  /// Load the array of camera properties
+  /// Load an array of camera properties
   virtual std::vector<FlyCapture2::Property> GetProperties();
 
   /// Retrieve the frame rate
@@ -83,7 +83,7 @@ class RosParameterPointGreyCameraSystemSetting : public IPointGreyCameraSystemSe
   /// Retrieve the trigger delay settings
   virtual std::optional<FlyCapture2::TriggerDelay> GetTriggerDelay();
 
-  /// Retrieve the image type (monochrome, color) settings
+  /// Retrieve the image type settings (monochrome, color)
   virtual std::optional<ImageType> GetImageType();
 
   /// Retrieve the 3.3V output settings

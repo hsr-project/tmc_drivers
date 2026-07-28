@@ -38,8 +38,8 @@ const int64_t  kNetworkTimeout     = 10000000;
 const int64_t  kNetworkTick        = 10000;
 const uint32_t kExxxflushArgcMax   = 7;         /// Maximum number of arguments for the exxx_flush command
 const uint32_t kExxxflushArgcMin   = 4;         /// Minimum number of arguments for the exxx_flush command
-const uint32_t kFlushAxisIDNum     = 11;        /// Total number of reprogramming axis numbers
-const uint8_t  kFlushAxisInvalidID = 0xFF;      /// Invalid reprogramming axis number
+const uint32_t kFlushAxisIDNum     = 11;        /// Total number of reprogramming axis IDs
+const uint8_t  kFlushAxisInvalidID = 0xFF;      /// Invalid reprogramming axis ID
 const std::array<uint8_t, kFlushAxisIDNum> FlushAxisIDTable = {11, 12, 13, 21, 22, 23, 24, 25, 31, 32, 41};
 const std::array<uint8_t, kFlushAxisIDNum> FlushBootAxisIDTable =
   {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x41, 0x42};
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
     int32_t bootloader_version;
     int64_t boot_timeout;
 
-    // Convert axis number input value to axis number in PROP amp boot section
+    // Convert input axis number to PROP amp boot section axis number
     for (uint32_t i = 0; i < kFlushAxisIDNum; ++i) {
       if (id == FlushAxisIDTable[i]) {
         axis_id = FlushBootAxisIDTable[i];
@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
       while (getline(ifs, read_data)) {
         flush_data = flush_data + read_data;
       }
-      // Check the format of the write file. Confirm that the first 2 bytes are in S record format (S0 to S9).
+      // Check the format of the write file. Verify that the first 2 bytes are in S-record format (S0 to S9).
       if ((flush_data.size() < 2) || (flush_data[0] != 'S') || (flush_data[1] < '0') || (flush_data[1] > '9')) {
         std::cerr << filename << " format error" << std::endl;
         return EXIT_FAILURE;
@@ -132,14 +132,14 @@ int main(int argc, char** argv) {
         if ((arg == "-c") || (arg == "--compulsion")) {
           is_compulsion = true;
         }
-        // Check if the first 2 characters of the option are -b
+        // Check if the first two characters of the option are -b
         if (arg.compare(0, 2, "-b") == 0) {
           if ((arg != "-b115200") && (arg != "-b3000000")) {
             // Return an error if an unsupported baud rate is specified.
             std::cerr << arg << " invalid value" << std::endl;
             return EXIT_FAILURE;
           }
-          // If the baud rate is not set, set the baud rate specified by the argument
+          // If the baud rate is not set, set the baud rate specified in the arguments
           if (!is_baudrate_specified) {
             if (arg == "-b115200") {
               baudrate = B115200;
@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
       std::cerr << error.message() << std::endl;
       return EXIT_FAILURE;
     } else {
-      // PROP amp boot section startup completed successfully
+      // PROP amp boot section started successfully
     }
 
     error = repro.Erase();

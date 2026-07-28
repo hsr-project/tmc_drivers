@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("diag_updater");
   auto diag_updater =
-      std::make_shared<tmc_diag_updater_common::DiagUpdater<sensor_msgs::msg::Imu::Ptr, sensor_msgs::msg::Imu> >(
+      std::make_shared<tmc_diag_updater_common::DiagUpdater<sensor_msgs::msg::Imu::SharedPtr, sensor_msgs::msg::Imu> >(
           node);
   try {
     rclcpp::spin(node);

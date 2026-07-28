@@ -26,8 +26,8 @@
 # DAMAGE.
 
 import copy
+import unittest
 
-from nose.tools import eq_, ok_, raises
 from tmc_sanyo_battery.driver import driver
 
 valid_packet = bytearray([
@@ -56,58 +56,54 @@ valid_result = {
 }
 
 
-def test_checksum():
-    cs = driver.checksum(valid_packet[2:-1])
-    ok_(isinstance(cs, int))
-    eq_(cs, valid_packet[-1])
+class DriverTestCase(unittest.TestCase):
+    def test_checksum(self):
+        cs = driver.checksum(valid_packet[2:-1])
+        self.assertIsInstance(cs, int)
+        self.assertEqual(cs, valid_packet[-1])
 
+    def test_read_packet_header(self):
+        with self.assertRaises(driver.ProtocolError):
+            invalid_packet = copy.copy(valid_packet)
+            invalid_packet[1] = 0xFE
+            driver.read_packet(bytes(invalid_packet))
 
-@raises(driver.ProtocolError)
-def test_read_packet_header():
-    invalid_packet = copy.copy(valid_packet)
-    invalid_packet[1] = 0xFE
-    driver.read_packet(bytes(invalid_packet))
+    def test_read_packet_checksum(self):
+        with self.assertRaises(driver.ProtocolError):
+            invalid_packet = copy.copy(valid_packet)
+            invalid_packet[-1] = 0x9A
+            driver.read_packet(bytes(invalid_packet))
 
+    def test_read_packet(self):
+        result = driver.read_packet(bytes(valid_packet))
+        self.assertEqual(result, valid_result)
 
-@raises(driver.ProtocolError)
-def test_read_packet_checksum():
-    invalid_packet = copy.copy(valid_packet)
-    invalid_packet[-1] = 0x9A
-    driver.read_packet(bytes(invalid_packet))
+    def test_connection(self):
+        class PortMock(object):
 
+            def read(self, num_bytes):
+                return bytes(valid_packet)
 
-def test_read_packet():
-    result = driver.read_packet(bytes(valid_packet))
-    eq_(result, valid_result)
+            def write(self, data):
+                self.data = data
 
+        port_mock = PortMock()
+        conn = driver.Connection(port_mock)
+        result = conn.read()
+        self.assertEqual(len(port_mock.data), 5)
+        self.assertEqual(port_mock.data, bytes(bytearray([0xFF, 0xFF, 0x00, 0xB0, 0x50])))
+        self.assertEqual(result, valid_result)
 
-def test_connection():
-    class PortMock(object):
+    def test_connection_timeout(self):
+        class PortMock(object):
 
-        def read(self, num_bytes):
-            return bytes(valid_packet)
+            def read(self, num_bytes):
+                return []
 
-        def write(self, data):
-            self.data = data
+            def write(self, data):
+                self.data = data
 
-    port_mock = PortMock()
-    conn = driver.Connection(port_mock)
-    result = conn.read()
-    eq_(len(port_mock.data), 5)
-    eq_(port_mock.data, bytes(bytearray([0xFF, 0xFF, 0x00, 0xB0, 0x50])))
-    eq_(result, valid_result)
-
-
-@raises(driver.TimeoutError)
-def test_connection_timeout():
-    class PortMock(object):
-
-        def read(self, num_bytes):
-            return []
-
-        def write(self, data):
-            self.data = data
-
-    port_mock = PortMock()
-    conn = driver.Connection(port_mock)
-    conn.read()
+        with self.assertRaises(driver.RcvTimeoutError):
+            port_mock = PortMock()
+            conn = driver.Connection(port_mock)
+            conn.read()

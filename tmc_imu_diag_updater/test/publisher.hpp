@@ -60,7 +60,7 @@ class Publisher {
    * @param nh Node handle
    * @param topic_name Name of the message to be published
    * @param queue_size Queue size of the Publisher
-   * @param msg_gen Reference-counted pointer to the message generator
+   * @param msg_gen Shared pointer to the message generator
    */
   Publisher(rclcpp::Node::SharedPtr node, const std::string& topic_name, const uint32_t queue_size,
             const typename MsgGen::SharedPtr& msg_gen)
@@ -78,7 +78,7 @@ class Publisher {
   virtual ~Publisher() = default;
 
   /**
-   * @brief Publish only once
+   * @brief Publish a message once
    */
   void PublishOnce() {
     typename MsgGen::MsgType msg = msg_gen_->Generate();
@@ -87,7 +87,7 @@ class Publisher {
 
 
   /**
-   * @brief Publish messages periodically
+   * @brief Periodically publish messages
    *
    * @param rate_hz Frequency (Hz)
    */
@@ -102,7 +102,7 @@ class Publisher {
   }
 
   /**
-   * @brief End publishing
+   * @brief Stop publishing
    */
   void StopPublishing() {
     cyclic_publish_timer_->cancel();

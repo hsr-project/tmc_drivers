@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file control_table.cpp
-/// @brief Class to obtain the control table from a CSV and use it for communication
+/// @brief A class that retrieves the control table from a CSV file and uses it for communication
 #ifndef TMC_EXXX_SERVO_MOTOR_PROTOCOL_CONTROL_TABLE_HPP_
 #define TMC_EXXX_SERVO_MOTOR_PROTOCOL_CONTROL_TABLE_HPP_
 
@@ -48,26 +48,26 @@ class ControlTable : private boost::noncopyable {
     kFileOpenError,    /// Failed to open the file
     kColumnSizeError,  /// Error in the number of elements in the control table
     kAlreadyRecorded,  /// More than one identical entry exists
-    kBadType,          /// Incorrect type specification was made
+    kBadType,          /// Incorrect type specified
   };
 
   ControlTable();
 
   ~ControlTable();
 
-  /// Pass the definition file to calculate md5sum
+  /// Calculate the md5sum by providing the definition file
   /// @return Success or failure of file reading, success with kSuccess
   ErrorCode CalculateMd5Sum(const std::string& definition_file);
 
-  /// Pass the definition file to initialize
+  /// Initialize by providing the definition file
   /// @return Success or failure of file reading, success with kSuccess
   ErrorCode Load(const std::string& definition_file);
 
-  /// Obtain the md5sum of this control table
+  /// Retrieve the md5sum of this control table
   std::vector<uint8_t> GetMd5Sum();
 
-  /// Obtain properties from the entry name of the control table
-  /// Return an empty shared_ptr if a non-existent name is given
+  /// Retrieve properties from the entry name of the control table
+  /// Returns an empty shared_ptr if a non-existent name is given
   std::shared_ptr<ControlTableItemDescriptor> ReferItemDescriptor(const std::string& entry) const;
 
   /// Search for the index corresponding to the command name.

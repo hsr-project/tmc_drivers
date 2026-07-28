@@ -27,7 +27,7 @@ DAMAGE.
 */
 /**
  * @file generator.hpp
- * @brief Provides a class to generate messages
+ * @brief Provides a class for generating messages
  * @auther Fukukazu Kawata
  * @note Derive from IGenerator as needed
  *
@@ -42,7 +42,7 @@ DAMAGE.
 namespace test_utils {
 
 /**
- * @brief Definition of an interface to generate data
+ * @brief Definition of an interface for generating data
  *
  * @tparam T Some type
  */
@@ -60,7 +60,7 @@ class IGenerator {
 /**
  * @brief Generates fixed data
  *
- * The value is given at initialization
+ * The value is provided at initialization
  *
  * @tparam T Some type
  */
@@ -68,7 +68,7 @@ template <class T>
 class FixedGenerator : public IGenerator<T> {
  public:
   /**
-   * @brief Setting the initial value (used continuously thereafter)
+   * @brief Set the initial value (used continuously thereafter)
    *
    * @param data Initial value
    */
@@ -79,7 +79,7 @@ class FixedGenerator : public IGenerator<T> {
   /**
    * @brief Retrieve data (fixed)
    *
-   * @return Data set at initialization
+   * @return Data set during initialization
    */
   T Generate() override { return data_; }
 
@@ -88,7 +88,7 @@ class FixedGenerator : public IGenerator<T> {
 };
 
 /**
- * @brief Generates a Stamp according to the flow of time
+ * @brief Generates a Stamp following the flow of time
  *
  * Becomes rclcpp::Time::now at the time of retrieval
  */
@@ -106,7 +106,7 @@ class ForwardStampGenerator : public IGenerator<rclcpp::Time> {
 };
 
 /**
- * @brief Generates a reverse Stamp
+ * @brief Generates a Stamp that moves backward
  */
 class BackwardStampGenerator : public IGenerator<rclcpp::Time> {
  public:
@@ -114,7 +114,7 @@ class BackwardStampGenerator : public IGenerator<rclcpp::Time> {
   virtual ~BackwardStampGenerator() = default;
 
   /**
-   * @brief Retrieve time (reverse direction)
+   * @brief Retrieve time (backward direction)
    *
    * @return Time in RCLCPP type
    */
@@ -131,11 +131,11 @@ class BackwardStampGenerator : public IGenerator<rclcpp::Time> {
 
 
 /**
- * @brief Class that generates and provides a Stamp along with a message
+ * @brief Provides a class that generates a Stamp along with a message
  *
  * @tparam M RCLCPP message type
  *
- * Needs to have a property structure as below
+ * Must have the following property structure
  *
  * msg.header.stamp
  */

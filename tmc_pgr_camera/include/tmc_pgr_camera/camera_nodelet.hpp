@@ -89,11 +89,11 @@ class CameraNodelet : public rclcpp::Node {
   std::shared_ptr<IPointGreyCameraSystemSetting> camera_setting_;
   /// dynamic_reconfigure server
   // std::shared_ptr<dynamic_reconfigure::Server <CameraPropertyConfig> > dynamic_reconfigure_server_;
-  /// Handle for monitoring changes in parameter
+  /// Handle for monitoring parameter changes
   rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr set_parameters_handle_;
-  /// Camera settings received via param are changed through YAML
+  /// Camera settings received via param are modified through YAML
   YAML::Node camera_properties_;
-  /// Determine that there has been an update to the parameter
+  /// Determine if there has been an update to the parameter
   bool property_changed_;
 };
 

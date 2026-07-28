@@ -57,7 +57,7 @@ ExxxProtocol::ErrorCode ExxxProtocol::Reset(uint8_t id) {
     return error;
   }
   error = network_->Receive(id, receive_buffer_);
-  // No response on success, so timeout is considered normal completion
+  // Since there is no response on success, consider timeout as normal completion
   if (error.value() == boost::system::errc::timed_out) {
     return ExxxProtocol::ErrorCode(boost::system::errc::success, boost::system::system_category());
   }
@@ -65,7 +65,7 @@ ExxxProtocol::ErrorCode ExxxProtocol::Reset(uint8_t id) {
   if (error.category() == boost::system::system_category() && error) {
     return error;
   } else {
-    // Return an error on successful reception
+    // Return an error upon successful reception
     return ExxxProtocol::ErrorCode(boost::system::errc::bad_message, boost::system::system_category());
   }
 }
@@ -104,14 +104,14 @@ ExxxProtocol::ErrorCode ExxxProtocol::AvagoAvePos(uint8_t id) {
 
 ExxxProtocol::ErrorCode ExxxProtocol::WriteEeprom(uint8_t id) {
   ExxxProtocol::ErrorCode error = network_->Send(id, kInstructionWriteEeprom, NULL, 0);
-  // No reply
+  // No response
   return error;
 }
 
 /// Retrieve the git hash value of the firmware
 /// @param[in] id Node id
 /// @param[out] control_table_hash_out md5sum of control_table.csv
-/// @param[out] firmware_hash_out git hash tag of control firmware
+/// @param[out] firmware_hash_out Git hash tag of control firmware
 /// @retval success Success
 /// @retval message_size Invalid size of the retrieved message
 /// @retval other System or ExxxCategory error

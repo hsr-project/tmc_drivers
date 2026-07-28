@@ -27,7 +27,7 @@
 # vim: fileencoding=utf-8 :
 u"""Sanyo Electric Battery Communication Driver
 
-Communicate with the battery and obtain information based on the communication specification [1].
+Communicates with the battery and retrieves information based on Communication Specification [1].
 
 .. [1] Bicycle 4-series 5-series Communication Specification Ver.1.0
 
@@ -45,7 +45,7 @@ class BatteryError(Exception):
     pass
 
 
-class TimeoutError(BatteryError):
+class RcvTimeoutError(BatteryError):
     pass
 
 
@@ -64,7 +64,7 @@ class DeviceOpenError(BatteryError):
 def checksum(seq):
     u"""Checksum Calculation
 
-    Calculate the two's complement of the lower byte of the sum of the given array
+    Calculates the two's complement of the least significant byte of the sum of the given array.
 
     Args:
         seq (bytes): Byte sequence for checksum calculation
@@ -77,9 +77,9 @@ def checksum(seq):
 
 @contextlib.contextmanager
 def connect(device_name, baudrate, timeout=0.1):
-    u"""Open the device and return a Connection object that holds it.
+    u"""Opens the device and returns a Connection object that holds it.
 
-    Assumed to be used with the 'with' statement.
+    Intended to be used with the with statement.
 
     Args:
         device_name (str): Device file name
@@ -97,7 +97,7 @@ def connect(device_name, baudrate, timeout=0.1):
 
 
 def default_status():
-    u"""Fill and return a dict with initial battery status values"""
+    u"""Fills and returns a dict with the initial values of the battery status."""
     status = {}
     status['battery_level'] = 0.0
     status['full_charge_capacity'] = 0.0
@@ -117,7 +117,7 @@ def default_status():
 
 
 def read_packet(data):
-    u"""Parse the received packet and return a dict containing battery status
+    u"""Parses the received packet and returns a dict containing the battery status.
 
     Args:
         data (bytes): Byte sequence of the received packet
@@ -138,8 +138,8 @@ def read_packet(data):
     status['remaining_charge'] = fields[5] / 1000.0
     status['battery_level'] = status['remaining_charge'] / \
         status['full_charge_capacity'] * 100.0
-    # In general definitions (such as sensor_msgs::msg::BatteryState), a positive current value indicates charging
-    # This battery indicates charging with a negative current value, so reverse the sign
+    # In general definitions (e.g., sensor_msgs::msg::BatteryState), a positive current value indicates charging
+    # However, this battery indicates charging with a negative current value, so the sign is inverted
     status['electric_current'] = -fields[6] / 1000.0 * 2.0
     status['voltage'] = fields[7] / 1000.
     status['temperature'] = fields[8] - 128
@@ -170,11 +170,11 @@ class Connection(object):
             self._last_updated = time.clock()
 
     def read(self):
-        u"""Communicate with the battery pack and obtain the current status.
+        u"""Communicates with the battery pack and retrieves its current status.
 
         TODO: プロトコル仕様を書いておく
         """
-        # There needs to be at least a 0.1 sec interval between each transmission and reception (refer to the specification)
+        # There must be at least a 0.1-second interval between each transmission and reception (refer to the specification)
         if sys.version_info.major == 3:
             now = time.process_time()
         else:
@@ -186,10 +186,10 @@ class Connection(object):
 
         request = bytearray([0xFF, 0xFF, 0x00, 0xB0, 0x50])
         self._filelike.write(request)
-        # Take more data to discard as a countermeasure against garbage data
+        # To counteract garbage data, take more data and discard the excess
         data = self._filelike.read(4096)
         if len(data) < 19:
-            raise TimeoutError(
+            raise RcvTimeoutError(
                 "Timed out before receiving expected data. Expected 19 bytes, "
                 "actually received {0} bytes.".format(len(data)))
         return read_packet(data[:19])

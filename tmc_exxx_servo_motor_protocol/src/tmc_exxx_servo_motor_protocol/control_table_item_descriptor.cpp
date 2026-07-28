@@ -31,20 +31,20 @@ DAMAGE.
 #include <string>
 #include <vector>
 // <limits> does not support long long int, so use boost
-// Change when it becomes c++11
+// Change when switching to c++11
 #include <boost/limits.hpp>
-// <round> uses boost's version, but the behavior on error is troublesome
-// Change when it becomes c++11
+// <round> uses boost's version, but its behavior during errors is troublesome
+// Change when switching to c++11
 #include <boost/math/special_functions/round.hpp>
 #include <tmc_exxx_servo_motor_protocol/control_table_item_descriptor.hpp>
 
 namespace {
 
-// Return round on error
+// Return round with an error
 namespace policies = boost::math::policies;
 typedef policies::policy<policies::rounding_error<policies::errno_on_error> > round_policy;
 
-/// @attention Byte length check is not performed, so check in preprocessing
+/// @attention Byte length check is not performed, so check during preprocessing
 template <class T>
 double DoubleCast(const uint8_t* bytes) {
   return static_cast<double>(*(reinterpret_cast<const T*>(&bytes[0])));

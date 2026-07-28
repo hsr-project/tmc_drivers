@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Load the configuration file for the Point Grey camera system
+/// @brief      Load the configuration file for the Point Grey camera system
 #include "tmc_pgr_camera/yaml_point_grey_camera_system_setting.hpp"
 #include <string>
 #include <unordered_map>
@@ -52,9 +52,9 @@ struct convert<FlyCapture2::Property> {
   /// @param[in] node YAML node
   /// @param[in] property Camera property of FlyCapture2 API
   /// @return
-  /// Returns true if the number of properties in the node matches the number of properties that could be set
+  /// Returns true if the number of properties in the node matches the number of properties successfully set
   static bool decode(const Node& node, FlyCapture2::Property& property) {
-    int32_t count = 0;
+    uint32_t count = 0;
     if (node["type"]) {
       property.type = static_cast<FlyCapture2::PropertyType>(node["type"].as<int32_t>());
       ++count;
@@ -110,9 +110,9 @@ struct convert<FlyCapture2::TriggerMode> {
   /// @param[in] node YAML node
   /// @param[in] property Trigger mode of FlyCapture2 API
   /// @return
-  /// Returns true if the number of properties in the node matches the number of properties that could be set
+  /// Returns true if the number of properties in the node matches the number of properties successfully set
   static bool decode(const Node& node, FlyCapture2::TriggerMode& trigger_mode) {
-    int32_t count = 0;
+    uint32_t count = 0;
     if (node["onOff"]) {
       trigger_mode.onOff = node["onOff"].as<bool>();
       ++count;
@@ -151,8 +151,8 @@ namespace tmc_pgr_camera {
 
 /// @brief Constructor
 /// @param[in] camera_setting_file_path Path to the camera setting file
-/// @exception std::runtime_error If the file cannot be read
-/// @exception std::runtime_error If the node is incorrect
+/// @exception std::runtime_error Thrown if the file cannot be loaded
+/// @exception std::runtime_error Thrown if the node is invalid
 YamlPointGreyCameraSystemSetting::YamlPointGreyCameraSystemSetting(const std::string& camera_setting_file_path)
     : setting_node_(), cache_() {
   try {
@@ -169,15 +169,15 @@ YamlPointGreyCameraSystemSetting::YamlPointGreyCameraSystemSetting(const std::st
   }
 }
 
-/// @brief Get an array of serial numbers of cameras used in the camera system
+/// @brief Retrieve the array of serial numbers for cameras used in the camera system
 /// @return Array of camera serial numbers
-///         The camera with the master setting comes first
-/// @exception std::runtime_error If failed to retrieve camera information
-/// @exception std::runtime_error If failed to create camera object
-/// @exception std::runtime_error If the node is incorrect
-/// @note Information required for camera information is in the following YAML format (id is the camera's serial number)
-///       If there are two or more, setting master: true makes that camera the master
-///       (If there are multiple master settings, the first master is adopted)
+///         The master camera is listed first
+/// @exception std::runtime_error Thrown if camera information retrieval fails
+/// @exception std::runtime_error Thrown if camera object creation fails
+/// @exception std::runtime_error Thrown if the node is invalid
+/// @note Information required for camera details is in the following YAML format (id is the camera's serial number)
+///       If there are two or more cameras, setting master: true designates that camera as the master
+///       (If multiple master settings exist, the first master is adopted)
 ///       cameras:
 ///         - id: xxxxxxxx
 ///           master: true
@@ -231,10 +231,10 @@ std::vector<uint32_t> YamlPointGreyCameraSystemSetting::GetSerialNumbers() {
   return serial_numbers;
 }
 
-/// @brief Load an array of camera properties
+/// @brief Load the array of camera properties
 /// @return Array of camera properties
-/// @exception std::runtime_error If a non-existent property is specified
-/// @exception std::runtime_error If the node is incorrect
+/// @exception std::runtime_error Thrown if a non-existent property is specified
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for camera properties is in the following YAML format
 ///       Example:
 ///       parameter:
@@ -243,10 +243,10 @@ std::vector<uint32_t> YamlPointGreyCameraSystemSetting::GetSerialNumbers() {
 ///           saturation: { ... }
 ///           zoom: { ... }
 ///
-///       Settable keys are brightness, auto_exposure, sharpness, white_balance,
+///       Configurable keys include brightness, auto_exposure, sharpness, white_balance,
 ///       hue、saturation、gamma、iris、focus、zoom、pan、tilt、shutter、gain、
 ///       trigger_mode、trigger_delay、frame_rate、temperature
-///       Settable values are present: bool, absControl: bool, onePush: bool,
+///       Configurable values include present: bool, absControl: bool, onePush: bool,
 ///       onOff: bool、autoManualMode: bool、valueA: unsigned int、
 ///       valueB: unsigned int、absValue: float、reserved: unsigned int[8]
 std::vector<FlyCapture2::Property> YamlPointGreyCameraSystemSetting::GetProperties() {
@@ -306,20 +306,20 @@ std::vector<FlyCapture2::Property> YamlPointGreyCameraSystemSetting::GetProperti
   return camera_properties;
 }
 
-/// @brief Get the frame rate
-/// @param[in] video_mode Video format actually used
-/// @return Pair of the constant value in FlyCapture2 SDK for the obtained frame rate and
-///         the actual frame rate value. If Format7, the constant value is FRAMERATE_FORMAT7
-///         Returns an invalid value if there is no setting
-/// @exception std::runtime_error If a non-existent frame rate is set
-/// @exception std::runtime_error If the node is incorrect
+/// @brief Retrieve the frame rate
+/// @param[in] video_mode Video format to be used
+/// @return Pair of the FlyCapture2 SDK constant value for the retrieved frame rate and
+///         the actual frame rate value. For Format7, the constant value is FRAMERATE_FORMAT7
+///         Returns an invalid value if no setting exists
+/// @exception std::runtime_error Thrown if a non-existent frame rate is set
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for frame rate is in the following YAML format
 ///       Example:
 ///       parameter:
 ///         frame_rate: 7.5
 ///
-///       If not Format7, frame_rate is set to one of 1.875, 3.75, 7.5, 15, 30, 60, 120, 240
-/// @brief Get the video mode
+///       If not Format7, frame_rate can be set to one of the following:
+///       1.875, 3.75, 7.5, 15, 30, 60, 120, 240
 std::optional<std::pair<FlyCapture2::FrameRate, float> > YamlPointGreyCameraSystemSetting::GetFrameRate(
     const FlyCapture2::VideoMode video_mode) {
   const YAML::Node& parameter = setting_node_["parameter"];
@@ -361,17 +361,17 @@ std::optional<std::pair<FlyCapture2::FrameRate, float> > YamlPointGreyCameraSyst
   return frame_rate_opt;
 }
 
-/// @return Constant value in FlyCapture2 SDK for the obtained video mode
-///         Returns an invalid value if there is no setting
-/// @exception std::runtime_error If a non-existent video mode is specified
-/// @exception std::runtime_error If the node is incorrect
+/// @brief Retrieve the video mode
+/// @return FlyCapture2 SDK constant value for the retrieved video mode
+///         Returns an invalid value if no setting exists
+/// @exception std::runtime_error Thrown if a non-existent video mode is specified
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for video mode is in the following YAML format
 ///       Example:
-///       Settable values are 160x120yuv444, 1280x960rgb, 1024x768rgb, 1024x768y16,
 ///       parameter:
 ///         video_mode: "format7"
 ///
-/// @brief Get the Format7 settings
+///       Configurable values include 160x120yuv444, 1280x960rgb, 1024x768rgb, 1024x768y16,
 ///       640x480y8、1280x960y8、800x600y16、1600x1200y16、320x240yuv422、
 ///       1024x768y8、800x600y8、640x480yuv411、1600x1200rgb、1280x960yuv422、
 ///       1600x1200yuv422、640x480yuv422、640x480y16、1280x960y16、1600x1200y8、
@@ -432,13 +432,13 @@ std::optional<FlyCapture2::VideoMode> YamlPointGreyCameraSystemSetting::GetVideo
   return video_mode_opt;
 }
 
-/// @return Obtained Format7 settings
-///         Returns an invalid value if there is no setting
-/// @exception std::runtime_error If the node key does not exist
-/// @exception std::runtime_error If the node is incorrect
+/// @brief Retrieve Format7 settings
+/// @return Retrieved Format7 settings
+///         Returns an invalid value if no setting exists
+/// @exception std::runtime_error Thrown if the node key does not exist
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for Format7 settings is in the following YAML format
 ///       Example:
-///       Set the mode to a number from 0 to 31 for Format7 mode
 ///       parameter:
 ///　　　　  format7:
 ///　　　　    mode: 0
@@ -448,9 +448,9 @@ std::optional<FlyCapture2::VideoMode> YamlPointGreyCameraSystemSetting::GetVideo
 ///　　　　    Height: 960
 ///　　　　    pixel_format: "raw8"
 ///
-///       Also, set the Offset to half the difference between the actual camera resolution and the set width and height
-///       Settable pixel_format are mono8, raw8, s_rgb16, mono12, rgb8, raw16,
-/// @brief Get the software demosaicing settings
+///       mode is the Format7 mode and can be set to a value between 0 and 31
+///       Additionally, Offset is set to half the difference between the actual camera resolution and the configured width and height
+///       Configurable pixel_format values include mono8, raw8, s_rgb16, mono12, rgb8, raw16,
 ///       s_mono16、422yuv8、rgb、411yuv8、raw12、mono16、bgr、bgru、rgb16、
 ///       444yuv8、rgbu、bgr16、bgru16、422yuv8_jpeg
 std::optional<FlyCapture2::Format7ImageSettings> YamlPointGreyCameraSystemSetting::GetFormat7Setting() {
@@ -498,7 +498,7 @@ std::optional<FlyCapture2::Format7ImageSettings> YamlPointGreyCameraSystemSettin
       throw std::runtime_error("Not found key 'mode' in format7 setting.");
     }
     const uint32_t mode_number = mode.as<uint32_t>();
-    if (mode_number < 0 || 31 < mode_number) {
+    if (31 < mode_number) {
       throw std::runtime_error(
           "Invalid mode of format7 in configuration YAML file.\n"
           "Set mode from 0 to 31.");
@@ -543,17 +543,17 @@ std::optional<FlyCapture2::Format7ImageSettings> YamlPointGreyCameraSystemSettin
   return format7_image_settings_opt;
 }
 
-/// @return Obtained software demosaicing settings
-///         Returns an invalid value if there is no setting
-/// @exception std::runtime_error If an incorrect string is specified for the setting value
-/// @exception std::runtime_error If the node is incorrect
+/// @brief Retrieve software demosaicing settings
+/// @return Retrieved software demosaicing settings
+///         Returns an invalid value if no setting exists
+/// @exception std::runtime_error Thrown if an incorrect string is specified for the setting
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for software demosaicing settings is in the following YAML format
 ///       Example:
-///       Settable software_demosaicing are default, no_color_processing,
 ///       parameter:
 ///　　　　  software_demosaicing: "edge_sensing"
 ///
-/// @brief Check if the software trigger is enabled
+///       Configurable software_demosaicing values include default, no_color_processing,
 ///       nearest_neighbor、edge_sensing、hq_linear、rigorous、ipp、
 ///       directional_filter
 std::optional<FlyCapture2::ColorProcessingAlgorithm> YamlPointGreyCameraSystemSetting::GetSoftDemosaicing() {
@@ -599,12 +599,12 @@ std::optional<FlyCapture2::ColorProcessingAlgorithm> YamlPointGreyCameraSystemSe
   return software_demosaicing_opt;
 }
 
-/// Returns false if the software trigger is disabled or if there is no setting
+/// @brief Check if the software trigger is enabled
 /// @return
-/// @exception std::runtime_error If the node is incorrect
+/// Returns false if the software trigger is disabled or the setting does not exist
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for software trigger settings is in the following YAML format
 ///       Example:
-/// @brief Check if the self-trigger is enabled
 ///       parameter:
 ///　　　　  software_trigger: off
 bool YamlPointGreyCameraSystemSetting::IsSoftwareTriggerEnabled() {
@@ -635,11 +635,11 @@ bool YamlPointGreyCameraSystemSetting::IsSoftwareTriggerEnabled() {
   return software_trigger;
 }
 
-/// @return Returns false if the self-trigger is disabled or if there is no setting
-/// @exception std::runtime_error If the node is incorrect
+/// @brief Check if the self-trigger is enabled
+/// @return Returns false if the self-trigger is disabled or the setting does not exist
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for self-trigger settings is in the following YAML format
 ///       Example:
-/// @brief Get the self-trigger settings
 ///       parameter:
 ///　　　　  self_trigger: on
 bool YamlPointGreyCameraSystemSetting::IsSelfTriggerEnabled() {
@@ -670,13 +670,13 @@ bool YamlPointGreyCameraSystemSetting::IsSelfTriggerEnabled() {
   return self_trigger;
 }
 
-/// @return Obtained self-trigger settings
-///         Returns an invalid value if there is no setting
-/// @exception std::runtime_error If the node key does not exist
-/// @exception std::runtime_error If the node is incorrect
+/// @brief Retrieve self-trigger settings
+/// @return Retrieved self-trigger settings
+///         Returns an invalid value if no setting exists
+/// @exception std::runtime_error Thrown if the node key does not exist
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for self-trigger settings is in the following YAML format
 ///       Example:
-///       For Flea2, in_io=2 out_io=3
 ///       self_trigger_io:
 ///         in_io: 0
 ///         out_io: 1
@@ -684,8 +684,8 @@ bool YamlPointGreyCameraSystemSetting::IsSelfTriggerEnabled() {
 ///         number_of_pulse: 0x01
 ///         polarity: 0
 ///
+///       For Flea2, in_io=2 out_io=3
 ///       For Chameleon, Blackfly, in_io=0 out_io=1
-/// @brief Get the trigger mode settings
 std::optional<SelfTriggerSettings> YamlPointGreyCameraSystemSetting::GetSelfTriggerSettings() {
   const int32_t hash = __LINE__;
   if (cache_.count(hash)) {
@@ -702,7 +702,7 @@ std::optional<SelfTriggerSettings> YamlPointGreyCameraSystemSetting::GetSelfTrig
 
   std::optional<SelfTriggerSettings> self_trigger_settings_opt = std::nullopt;
   try {
-    SelfTriggerSettings self_trigger_settings = { 0 };
+    SelfTriggerSettings self_trigger_settings = { 0, 0, 0, 0, 0 };
     const YAML::Node& in_io = self_trigger_io["in_io"];
     if (!in_io) {
       throw std::runtime_error("Not found key 'in_io' in self trigger setting.");
@@ -747,24 +747,24 @@ std::optional<SelfTriggerSettings> YamlPointGreyCameraSystemSetting::GetSelfTrig
   return self_trigger_settings_opt;
 }
 
-/// @return Obtained trigger mode settings
-///         Returns an invalid value if there is no setting
-/// @exception std::runtime_error If not properly set when using self-trigger
-/// @exception std::runtime_error If the node is incorrect
+/// @brief Retrieve trigger mode settings
+/// @return Retrieved trigger mode settings
+///         Returns an invalid value if no setting exists
+/// @exception std::runtime_error Thrown if self-trigger usage is not properly configured
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for trigger mode settings is in the following YAML format
 ///       Example:
-///       Settable values are onOff: bool, polarity: unsigned int,
 ///       property:
 ///         trigger_mode:
 ///           onOff: on
 ///           mode: 0
 ///
-///       Also, if self-trigger is enabled, GetSelfTriggerSettings() is
+///       Configurable values include onOff: bool, polarity: unsigned int,
 ///       source: unsigned int、mode: unsigned int、parameter: unsigned int、
 ///       reserved: int[8]
 ///
-///       called internally, so separate setting description is required
-// Software trigger settings
+///       Additionally, if self-trigger is enabled, GetSelfTriggerSettings()
+///       is called internally, so separate configuration is required
 std::optional<FlyCapture2::TriggerMode> YamlPointGreyCameraSystemSetting::GetTriggerMode() {
   const int32_t hash = __LINE__;
   if (cache_.count(hash)) {
@@ -787,7 +787,7 @@ std::optional<FlyCapture2::TriggerMode> YamlPointGreyCameraSystemSetting::GetTri
       const std::optional<bool> is_software_trigger_enabled = IsSoftwareTriggerEnabled();
       const std::optional<bool> is_self_trigger_enabled = IsSelfTriggerEnabled();
       if (is_software_trigger_enabled && *is_software_trigger_enabled) {
-        // Get the input IO number for self-trigger from the camera setting file
+        // Software trigger settings
         trigger_mode_opt->parameter = kSoftwareTriggerParameter;
         trigger_mode_opt->source = kSoftwareTriggerSource;
       } else if (is_self_trigger_enabled && *is_self_trigger_enabled) {
@@ -795,17 +795,17 @@ std::optional<FlyCapture2::TriggerMode> YamlPointGreyCameraSystemSetting::GetTri
         if (!self_trigger_settings) {
           throw std::runtime_error("Not found self trigger settings.");
         }
-        // The input IO number for external trigger settings is 0
+        // Retrieve the input IO number for self-trigger from the camera setting file
         trigger_mode_opt->parameter = 0;
         trigger_mode_opt->source = self_trigger_settings->in_io;
       } else {
-        // If it is set for Blackfly, check if other parameters are also set for Blackfly
+        // Input IO number for external trigger settings is 0
         trigger_mode_opt->parameter = 0;
         trigger_mode_opt->source = 0;
       }
     }
 
-    /// @brief Get the trigger delay settings
+    // If configured for Blackfly, ensure other parameters are also set for Blackfly
     const std::optional<SelfTriggerSettings> self_trigger_settings = GetSelfTriggerSettings();
     if (!self_trigger_settings) {
       throw std::runtime_error("Not found self trigger settings.");
@@ -826,18 +826,18 @@ std::optional<FlyCapture2::TriggerMode> YamlPointGreyCameraSystemSetting::GetTri
   return trigger_mode_opt;
 }
 
-/// @return Obtained trigger delay settings
-///         Returns an invalid value if there is no setting
-/// @exception std::runtime_error If the node is incorrect
+/// @brief Retrieve trigger delay settings
+/// @return Retrieved trigger delay settings
+///         Returns an invalid value if no setting exists
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for trigger delay settings is in the following YAML format
 ///       Example:
-///       Settable values are present: bool, absControl: bool, onePush: bool,
 ///       property:
 ///         trigger_mode:
 ///           absValue: 5.0
 ///           onOff: off
 ///
-// absValue cannot be set unless absControl is set to true
+///       Configurable values include present: bool, absControl: bool, onePush: bool,
 ///       onOff: bool、autoManualMode: bool、valueA: unsigned int、
 ///       valueB: unsigned int、absValue: float、reserved: unsigned int[8]
 std::optional<FlyCapture2::TriggerDelay> YamlPointGreyCameraSystemSetting::GetTriggerDelay() {
@@ -858,7 +858,7 @@ std::optional<FlyCapture2::TriggerDelay> YamlPointGreyCameraSystemSetting::GetTr
   try {
     trigger_delay_opt = trigger_delay.as<FlyCapture2::Property>();
     trigger_delay_opt->type = FlyCapture2::TRIGGER_DELAY;
-    /// @brief Get the image type settings (monochrome, color)
+    // absControl must be set to true, otherwise absValue cannot be configured
     trigger_delay_opt->absControl = true;
 
     cache_[hash] = *trigger_delay_opt;
@@ -871,14 +871,14 @@ std::optional<FlyCapture2::TriggerDelay> YamlPointGreyCameraSystemSetting::GetTr
   return trigger_delay_opt;
 }
 
+/// @brief Retrieve image type settings (monochrome, color)
 /// @return Image type
 ///         Returns ImageType::kRgbImage if change_rgb_flag is on
-///         Returns ImageType::kMonoImage if off
-///         Returns an invalid value if there is no setting
-/// @exception std::runtime_error If the node is incorrect
+///         Returns ImageType::kMonoImage if change_rgb_flag is off
+///         Returns an invalid value if no setting exists
+/// @exception std::runtime_error Thrown if the node is invalid
 /// @note Information required for RGB conversion flag is in the following YAML format
 ///       Example:
-/// @brief Get the 3.3V output settings
 ///       property:
 ///         change_rgb_flag: on
 std::optional<ImageType> YamlPointGreyCameraSystemSetting::GetImageType() {
@@ -911,9 +911,9 @@ std::optional<ImageType> YamlPointGreyCameraSystemSetting::GetImageType() {
   return image_type;
 }
 
+/// @brief Retrieve 3.3V output settings
 /// @return Whether to output or not
 /// @note Output is possible only for Blackfly
-/// @note Output possible only for Blackfly
 std::optional<bool> YamlPointGreyCameraSystemSetting::GetOutputVoltageSetting() {
   const int32_t hash = __LINE__;
   if (cache_.count(hash)) {

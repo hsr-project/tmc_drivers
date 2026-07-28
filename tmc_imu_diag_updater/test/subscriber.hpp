@@ -27,7 +27,7 @@ DAMAGE.
 */
 /**
  * @file subscriber.hpp
- * @brief Provides a Subscriber with cache, etc.
+ * @brief Provides a cached Subscriber, etc.
  * @auther Fukukazu Kawata
  *
  *
@@ -44,7 +44,7 @@ DAMAGE.
 namespace test_utils {
 
 /**
- * @brief Subscriber with cache
+ * @brief Cached Subscriber
  *
  * Start/stop subscription and clear buffer
  *
@@ -61,9 +61,9 @@ class CacheSubscriber {
   /**
    * @brief Constructor
    *
-   * @param nh Node handle. Used to create subscriber
+   * @param nh Node handle used to create the subscriber
    * @param topic_name Name of the topic to subscribe to
-   * @param queue_size Queue size of the Subscriber
+   * @param queue_size Queue size for the Subscriber
    */
   CacheSubscriber(rclcpp::Node::SharedPtr node, const std::string& topic_name, const uint32_t queue_size)
       : topic_name_(topic_name), queue_size_(queue_size), node_(node) {
@@ -102,14 +102,14 @@ class CacheSubscriber {
   void ClearCache() { std::vector<M>().swap(cache_); }
 
   /**
-   * @brief Check if the topic to subscribe to is being published
+   * @brief Check if the subscribed topic is being published
    *
    * @return Whether the topic is being published or not
    */
   bool IsPublished() const { return sub_->get_publisher_count() != 0; }
 
   /**
-   * @brief Check if the topic to subscribe to is being published (wait for a maximum specified time)
+   * @brief Check if the subscribed topic is being published (wait for a maximum specified time)
    *
    * @param wait_sec Waiting time (sec)
    *
@@ -142,7 +142,7 @@ class CacheSubscriber {
 
  private:
   /**
-   * @brief Add a message to the cache. Bound as a Callback for the Subscriber
+   * @brief Add a message to the cache. Bound as the Subscriber's callback
    *
    * @param msg Message
    */

@@ -177,7 +177,7 @@ class ControlTable::ControlTableImpl {
     ++it;
     std::string attribute_str = *it;
 
-    // Immediate failure if there is a duplicate name
+    // Fail immediately if the same name exists
     if (descriptors_.find(name) != descriptors_.end()) {
       return kAlreadyRecorded;
     }

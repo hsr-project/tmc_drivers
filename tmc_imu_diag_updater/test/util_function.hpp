@@ -27,7 +27,7 @@ DAMAGE.
 */
 /**
  * @file util_function.hpp
- * @brief Provides functions that perform processes commonly done in tests
+ * @brief Provides functions that perform processes commonly used in tests
  * @auther Fukukazu Kawata
  *
  *
@@ -44,17 +44,17 @@ namespace test_utils {
 using WaitFunctionType = std::function<bool()>;
 
 /**
- * @brief Wait until some condition is met
+ * @brief Waits until a certain condition is met
  *
  * @param condition_function Condition function
  * @param timeout_sec Maximum wait time (sec)
- * @param rate_hz Check cycle (hz) Default 100.0 (hz)
+ * @param rate_hz Check frequency (hz), default 100.0 (hz)
  *
  * @return Condition met or not met
  */
 bool WaitUntil(rclcpp::Node::SharedPtr node, WaitFunctionType condition_function, double timeout_sec,
                double rate_hz = 100.0) {
-  // Error check for arguments
+  // Argument error check
   if (!condition_function) {
     throw std::invalid_argument("Function for waiting is empty.");
   }
@@ -99,6 +99,8 @@ bool WaitForTopicExistence(rclcpp::Node::SharedPtr node, const std::string& topi
 
     rclcpp::sleep_for(std::chrono::milliseconds(100));
   }
+
+  return false;
 }
 
 // Wait until timeout

@@ -45,27 +45,27 @@ const uint32_t kSendCommandMaxRetryCount      = 10;                 /// Maximum 
 const uint32_t kFlushXmodemMaxRetryCount      = 100;                /// Maximum retry count for XMODEM communication reception
 const uint8_t  kEraseCommand                  = 0x65;               /// Erase command 'e'
 const uint8_t  kFlushCommand                  = 0x77;               /// Firmware write command 'w'
-const uint8_t  kRunCommand                    = 0x67;               /// Firmware run command 'g'
+const uint8_t  kRunCommand                    = 0x67;               /// Firmware start command 'g'
 const uint8_t  kExecuteCommand                = 0x79;               /// Command execution 'y'
 const char*    kBootMessage                   = "Bootloader";       /// PROP amp boot section startup message
 const char*    kEraseCheckMessage             = "ERASE ALL FLASH";  /// Erase confirmation message
 const char*    kEraseFinishMessage            = "COMPLETED";        /// Erase completion message
 const char*    kFlushCheckMessage             = "START UPLOAD";     /// Firmware write confirmation message
 const char*    kFlushFinishMessage            = "SUCCESS";          /// Firmware write completion message
-const char*    kRunCheckMessage               = "GO";               /// Firmware startup message
+const char*    kRunCheckMessage               = "GO";               /// Firmware start message
 const uint8_t  kXmodemSOH                     = 0x01;               /// XMODEM communication block start
 const uint8_t  kXmodemEOT                     = 0x04;               /// XMODEM communication transfer end
-const uint8_t  kXmodemACK                     = 0x06;               /// XMODEM communication normal response
-const uint8_t  kXmodemNAK                     = 0x15;               /// XMODEM communication transmission request and negative response
-const uint8_t  kXmodemCAN                     = 0x18;               /// XMODEM communication interruption
+const uint8_t  kXmodemACK                     = 0x06;               /// XMODEM communication acknowledgment
+const uint8_t  kXmodemNAK                     = 0x15;               /// XMODEM communication request for transmission and negative acknowledgment
+const uint8_t  kXmodemCAN                     = 0x18;               /// XMODEM communication cancel
 const uint8_t  kXmodemEOF                     = 0xFF;               /// XMODEM communication padding
-const uint32_t kXmodemSendSize                = 132;                /// XMODEM communication transmission data size
+const uint32_t kXmodemSendSize                = 132;                /// XMODEM communication data transmission size
 const uint32_t kXmodemDataSize                = 128;                /// XMODEM communication data section size
 const uint32_t kXmodemHeaderSize              = 3;                  /// XMODEM communication header + block number size
-const uint32_t kXmodemHeaderPos               = 0;                  /// XMODEM communication transmission data header position
-const uint32_t kXmodemBlockNumberPos          = 1;                  /// XMODEM communication transmission data block number position
-const uint32_t kXmodemBlockNumberCompPos      = 2;                  /// XMODEM communication transmission data block number one's complement position
-const uint32_t kXmodemCheckSumPos             = 131;                /// XMODEM communication transmission data checksum position
+const uint32_t kXmodemHeaderPos               = 0;                  /// XMODEM communication header position in transmission data
+const uint32_t kXmodemBlockNumberPos          = 1;                  /// XMODEM communication block number position in transmission data
+const uint32_t kXmodemBlockNumberCompPos      = 2;                  /// XMODEM communication complement of block number position in transmission data
+const uint32_t kXmodemCheckSumPos             = 131;                /// XMODEM communication checksum position in transmission data
 const int64_t  kBootStartUpWaitTime           = 3000000000;         /// PROP amp boot section startup wait time [ns]
 const int64_t  kReproIntervalTime             = 1000000000;         /// PROP amp startup wait '.' output interval [ns]
 const int64_t  kCommandIntervalTime           = 50000000;           /// Command transmission interval [ns]
@@ -75,12 +75,12 @@ const uint8_t  kReceiveLineDelimiter1         = 0x0A;               /// '\n'(lin
 const uint8_t  kReceiveLineDelimiter2         = 0x3F;               /// '?'
 
 /**
- * @brief Wait for specified time [ns]
+ * @brief Wait for a specified time [ns]
  *
  * @param[in]  nsec         Wait time [ns]
  * @return
- * boost::system::errc::success  Wait for specified time succeeded
- * boost::system::errc::invalid_argument  Wait for specified time failed
+ * boost::system::errc::success  Successfully waited for the specified time
+ * boost::system::errc::invalid_argument  Failed to wait for the specified time
  */
 boost::system::error_code WaitNanoSec(int64_t nsec) {
   boost::system::error_code error(boost::system::errc::success, boost::system::system_category());
@@ -93,7 +93,7 @@ boost::system::error_code WaitNanoSec(int64_t nsec) {
       continue;
     } else {
       // EFAULT or EINVAL
-      // Both occur due to arguments of clock_nanosleep function, so set return value to invalid_argument
+      // Both occur due to arguments of the clock_nanosleep function, so set the return value to invalid_argument
       error = boost::system::error_code(boost::system::errc::invalid_argument, boost::system::system_category());
       break;
     }
@@ -110,7 +110,7 @@ namespace tmc_exxx_servo_motor_protocol {
  * @param[in]   device_name   Device name
  * @param[in]   is_usb_rs485  USB usage (true: USB used, false: USB not used)
  * @param[in]   timeout       Send/receive timeout time [ns]
- * @param[in]   sleep_tick    Retry wait time [ns] when write function returns EAGAIN
+ * @param[in]   sleep_tick    Retry wait time [ns] when the write function returns EAGAIN
  * @retval  void
  */
 ExxxReprograming::ExxxReprograming(const std::string& device_name, bool is_usb_rs485, uint32_t baudrate,
@@ -121,7 +121,7 @@ ExxxReprograming::ExxxReprograming(const std::string& device_name, bool is_usb_r
 /**
  * @brief Destructor
  *
- * Close file descriptor (communication device)
+ * Close the file descriptor (communication device)
  *
  * @param   void
  * @retval  void
@@ -129,10 +129,10 @@ ExxxReprograming::ExxxReprograming(const std::string& device_name, bool is_usb_r
 ExxxReprograming::~ExxxReprograming() { (void)close(fd_); }
 
 /**
- * @brief Open communication device
+ * @brief Open the communication device
  *
  * @return
- * boost::system::errc::success  Device open succeeded
+ * boost::system::errc::success  Device opened successfully
  * Return errors that occur with open, tcgetattr, tcsetattr, ioctl, tcflush, cfsetispeed, tcsetattr
  */
 ExxxReprograming::ErrorCode ExxxReprograming::Open() {
@@ -142,8 +142,8 @@ ExxxReprograming::ErrorCode ExxxReprograming::Open() {
     error = boost::system::error_code(errno, boost::system::system_category());
   } else {
     fd_ = port;
-    // Initialize device
-    // If an error occurs, set errno to return value and terminate process
+    // Initialize the device
+    // If an error occurs, set errno as the return value and terminate the process
 
     // Set raw mode
     termios term = { 0 };
@@ -222,11 +222,11 @@ ExxxReprograming::ErrorCode ExxxReprograming::Open() {
 /**
  * @brief PROP amp boot section startup process
  *
- * Send axis number and start PROP amp boot section.
+ * Send the axis number and start the PROP amp boot section.
  * Normally called after PROP amp reset during repro.
- * Called during forced repro when PROP amp is powered off.
+ * In forced repro, call while the PROP amp is powered off.
  *
- * Startup process communication
+ * Communication for startup process
  *   Host -  PROP amp
  *  Axis number  -> 
  *  Axis number  -> 
@@ -239,14 +239,14 @@ ExxxReprograming::ErrorCode ExxxReprograming::Open() {
  *         <-  >
  *
  * @param[in]  bootloader_version Bootloader version
- * @param[in]  id                 Axis number of PROP amp boot section
+ * @param[in]  id                 Axis number of the PROP amp boot section
  * @param[in]  boot_timeout       PROP amp startup timeout time [ns]
  * @return
- * boost::system::errc::success  PROP amp boot section startup succeeded
+ * boost::system::errc::success  PROP amp boot section startup successful
  * boost::system::errc::timed_out  Transmission timeout
  * boost::system::errc::no_message  Timeout without receiving PROP amp boot section startup message
- * boost::system::errc::value_too_large  Timeout measurement variable overflowed
- * boost::system::errc::invalid_argument  Wait for specified time failed
+ * boost::system::errc::value_too_large  Overflow of variable for timeout measurement
+ * boost::system::errc::invalid_argument  Failed to wait for the specified time
  * Return errors that occur with poll, read, write
  */
 ExxxReprograming::ErrorCode ExxxReprograming::WaitBoot(const int32_t bootloader_version,
@@ -277,30 +277,30 @@ ExxxReprograming::ErrorCode ExxxReprograming::WaitBoot(const int32_t bootloader_
       if (error.value() != boost::system::errc::success) {
         break;
       } else {
-        // Check if startup message is in received data
-        // If startup message is received, boot section startup succeeded
+        // Check if the startup message is in the received data
+        // If the startup message is received, the boot section startup is successful
         boot_message = boot_message + receive_message;
         is_boot_message = (boot_message.find(kBootMessage) != std::string::npos);
         is_axis_number = (boot_message.find(axis_number) != std::string::npos);
 
         if (is_boot_message && is_axis_number) {
-          // After receiving startup message, confirm bootloader version.
+          // After receiving the startup message, confirm the bootloader version.
           boot_version.push_back(bootloader_version + '0');
           if (boot_message.find(boot_version) == std::string::npos) {
             error = boost::system::error_code(boost::system::errc::not_supported, boost::system::system_category());
             break;
           }
-          // PROP amp boot section has a wait time before sending startup message after receiving axis number.
-          // During wait time, axis number is sent, and boot section returns response to received axis number during wait time.
-          // Received data other than startup message is unnecessary for subsequent repro process, so discard received data.
+          // The PROP amp boot section has a waiting time from receiving the axis number to sending the startup message.
+          // During the waiting time, the axis number is sent, and the boot section responds to the received axis number during the waiting time.
+          // Received data other than the startup message is unnecessary for subsequent repro processing, so discard the received data.
           while (true) {
             error = ReceiveByte(receive_data);
             if (error.value() != boost::system::errc::success) {
               break;
             }
           }
-          // If discard completes normally, error becomes timed_out
-          // If error is timed_out, set return value to success
+          // If the discard is completed successfully, the error becomes timed_out
+          // If the error is timed_out, set the return value to success
           if (error.value() == boost::system::errc::timed_out) {
             error = boost::system::error_code(boost::system::errc::success, boost::system::system_category());
           }
@@ -309,12 +309,12 @@ ExxxReprograming::ErrorCode ExxxReprograming::WaitBoot(const int32_t bootloader_
       }
     }
     if (is_boot_message && is_axis_number) {
-      // If startup message is received, terminate process
+      // If the startup message is received, terminate the process
       break;
     }
     if ((error.value() != boost::system::errc::success) &&
         (error.value() != boost::system::errc::timed_out)) {
-      // Terminate process for abnormal detection
+      // Terminate the process due to abnormal detection
       break;
     } else {
       elapsed = Now();
@@ -325,7 +325,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::WaitBoot(const int32_t bootloader_
         output_count++;
       }
       if ((elapsed - boot_start) >= (boot_timeout + kBootStartUpWaitTime)) {
-        // If startup message is not received within timeout time, set return value to no_message and terminate process
+        // If the startup message is not received within the timeout period, set the return value to no_message and terminate the process
         error = boost::system::error_code(boost::system::errc::no_message, boost::system::system_category());
         break;
       }
@@ -346,9 +346,9 @@ ExxxReprograming::ErrorCode ExxxReprograming::WaitBoot(const int32_t bootloader_
 /**
  * @brief PROP amp erase process
  *
- * Erase firmware of PROP amp.
+ * Erase the firmware of the PROP amp.
  *
- * Erase process communication
+ * Communication for erase process
  *   Host -  PROP amp
  *       e  -> 
  *         <-  ERASE ALL FLASH ARE YOU SURE? (Y/N) 
@@ -359,11 +359,11 @@ ExxxReprograming::ErrorCode ExxxReprograming::WaitBoot(const int32_t bootloader_
  *         <-  SUCCESS
  *
  * @return
- * boost::system::errc::success  PROP amp erase succeeded
+ * boost::system::errc::success  PROP amp erase successful
  * boost::system::errc::timed_out  Erase process timeout
  * boost::system::errc::no_message  Timeout without receiving erase command confirmation message
- * boost::system::errc::value_too_large  Timeout measurement variable overflowed
- * boost::system::errc::invalid_argument  Wait for specified time failed
+ * boost::system::errc::value_too_large  Overflow of variable for timeout measurement
+ * boost::system::errc::invalid_argument  Failed to wait for the specified time
  * Return errors that occur with poll, read, write
  */
 ExxxReprograming::ErrorCode ExxxReprograming::Erase() {
@@ -373,7 +373,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::Erase() {
 
   error = SendCommand(kEraseCommand, kEraseCheckMessage);
   if (error.value() == boost::system::errc::timed_out) {
-    // If there is no response to erase command, set return value to no_message
+    // If there is no response to the erase command, set the return value to no_message
     error = boost::system::error_code(boost::system::errc::no_message, boost::system::system_category());
   }
   if (error.value() == boost::system::errc::success) {
@@ -382,18 +382,18 @@ ExxxReprograming::ErrorCode ExxxReprograming::Erase() {
   if (error.value() == boost::system::errc::success) {
     start = Now();
     elapsed = start;
-    // Confirm reception of erase completion message until erase completion wait time elapses
+    // Confirm reception of erase completion message until the erase completion wait time elapses
     while (true) {
       error = CheckReceivedMessage(kEraseFinishMessage);
       if (error.value() == boost::system::errc::success) {
-        // Received erase completion message, terminate process
+        // Since the erase completion message was received, terminate the process
         break;
       } else if ((error.value() != boost::system::errc::illegal_byte_sequence) &&
                  (error.value() != boost::system::errc::timed_out)) {
-        // If errors other than timeout and confirmation message not received occur, terminate process
+        // If errors other than timeout and confirmation message not received occur, terminate the process
         break;
       } else {
-        // Continue process as erase completion message not received
+        // Continue the process as the erase completion message was not received
       }
       error = WaitNanoSec(kCommandIntervalTime);
       if (error.value() != boost::system::errc::success) {
@@ -401,7 +401,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::Erase() {
       }
       elapsed = Now();
       if ((elapsed - start) >= kEraseWaitTime) {
-        // If erase completion wait time elapses, set return value to timed_out and terminate process
+        // If the erase completion wait time elapses, set the return value to timed_out and terminate the process
         error = boost::system::error_code(boost::system::errc::timed_out, boost::system::system_category());
         break;
       }
@@ -418,11 +418,11 @@ ExxxReprograming::ErrorCode ExxxReprograming::Erase() {
 /**
  * @brief PROP amp firmware write process
  * 
- * Send firmware write data to PROP amp and rewrite firmware.
- * Firmware write data transmission is done using XMODEM protocol.
- * Corresponding XMODEM type is XMODEM/SUM.
+ * Send firmware write data to the PROP amp and rewrite the firmware.
+ * Firmware write data is sent using the XMODEM protocol.
+ * The corresponding type of XMODEM is XMODEM/SUM.
  * 
- * Firmware write process communication
+ * Communication for firmware write process
  *   Host -  PROP amp
  *       w  -> 
  *         <-  START UPLOAD...\r\n
@@ -436,11 +436,11 @@ ExxxReprograming::ErrorCode ExxxReprograming::Erase() {
  *
  * @param[in]  flush_data  Firmware write data
  * @return
- * boost::system::errc::success  PROP amp firmware write succeeded
- * boost::system::errc::timed_out  Communication timeout between PROP amps
+ * boost::system::errc::success  PROP amp firmware write successful
+ * boost::system::errc::timed_out  Communication timeout between PROP amp
  * boost::system::errc::no_message  Timeout without receiving flash write command confirmation message
- * boost::system::errc::value_too_large  Timeout measurement variable overflowed
- * boost::system::errc::invalid_argument  Wait for specified time failed
+ * boost::system::errc::value_too_large  Overflow of variable for timeout measurement
+ * boost::system::errc::invalid_argument  Failed to wait for the specified time
  * Return errors that occur with poll, read, write
  */
 ExxxReprograming::ErrorCode ExxxReprograming::Flush(const std::string& flush_data) {
@@ -449,20 +449,20 @@ ExxxReprograming::ErrorCode ExxxReprograming::Flush(const std::string& flush_dat
 
   error = SendCommand(kFlushCommand, kFlushCheckMessage);
   if (error.value() == boost::system::errc::timed_out) {
-    // If there is no response to flash write command, set return value to no_message
+    // If there is no response to the flash write command, set the return value to no_message
     error = boost::system::error_code(boost::system::errc::no_message, boost::system::system_category());
   } else if (error.value() != boost::system::errc::success) {
-    // If errors other than timeout occur, terminate process
+    // If errors other than timeout occur, terminate the process
   } else {
-    // Response to flash write command is multi-line, so discard unnecessary received data
+    // Since the response to the flash write command consists of multiple lines, discard unnecessary received data
     while (true) {
       error = ReceiveByte(receive_data);
       if (error.value() != boost::system::errc::success) {
         break;
       }
     }
-    // If discard completes normally, error becomes timed_out
-    // If error is timed_out, perform command transmission
+    // If the discard is completed successfully, the error becomes timed_out
+    // If the error is timed_out, send the command
     if (error.value() == boost::system::errc::timed_out) {
       error = SendData(&kExecuteCommand, 1);
     }
@@ -476,19 +476,19 @@ ExxxReprograming::ErrorCode ExxxReprograming::Flush(const std::string& flush_dat
 /**
  * @brief PROP amp firmware execution process
  *
- * Terminate PROP amp boot section and execute firmware.
+ * Terminate the PROP amp boot section and execute the firmware.
  *
- * Firmware execution process communication
+ * Communication for firmware execution process
  *   Host -  PROP amp
  *       g  -> 
  *         <-  GO !!\r\n
  *
  * @param   void
  * @return
- * boost::system::errc::success  PROP amp firmware execution succeeded
- * boost::system::errc::no_message  Timeout without receiving firmware startup command response message
- * boost::system::errc::value_too_large  Timeout measurement variable overflowed
- * boost::system::errc::invalid_argument  Wait for specified time failed
+ * boost::system::errc::success  PROP amp firmware execution successful
+ * boost::system::errc::no_message  Timeout without receiving firmware start command response message
+ * boost::system::errc::value_too_large  Overflow of variable for timeout measurement
+ * boost::system::errc::invalid_argument  Failed to wait for the specified time
  * Return errors that occur with write
  */
 ExxxReprograming::ErrorCode ExxxReprograming::Run() {
@@ -496,7 +496,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::Run() {
 
   error = SendCommand(kRunCommand, kRunCheckMessage);
   if (error.value() == boost::system::errc::timed_out) {
-    // If there is no response to firmware startup command, set return value to no_message
+    // If there is no response to the firmware start command, set the return value to no_message
     error = boost::system::error_code(boost::system::errc::no_message, boost::system::system_category());
   }
   return error;
@@ -505,15 +505,15 @@ ExxxReprograming::ErrorCode ExxxReprograming::Run() {
 /**
  * @brief Firmware write process using XMODEM communication
  * 
- * Send firmware write data using XMODEM protocol.
- * Corresponding XMODEM type is XMODEM/SUM.
+ * Send firmware write data using the XMODEM protocol.
+ * The corresponding type of XMODEM is XMODEM/SUM.
  * 
  * @param[in]  flush_data  Firmware write data
  * @return
- * boost::system::errc::success  PROP amp firmware write succeeded
- * boost::system::errc::timed_out  Communication timeout between PROP amps, XMODEM communication interruption
- * boost::system::errc::value_too_large  Timeout measurement variable overflowed
- * boost::system::errc::invalid_argument  Wait for specified time failed
+ * boost::system::errc::success  PROP amp firmware write successful
+ * boost::system::errc::timed_out  Communication timeout between PROP amp, XMODEM communication interrupted
+ * boost::system::errc::value_too_large  Overflow of variable for timeout measurement
+ * boost::system::errc::invalid_argument  Failed to wait for the specified time
  * Return errors that occur with poll, read, write
  */
 ExxxReprograming::ErrorCode ExxxReprograming::FlushXmodem(const std::string& flush_data) {
@@ -533,19 +533,19 @@ ExxxReprograming::ErrorCode ExxxReprograming::FlushXmodem(const std::string& flu
       break;
     } else if ((error.value() != boost::system::errc::success) &&
                (error.value() != boost::system::errc::timed_out)) {
-      // If errors other than timeout occur, terminate process
+      // If errors other than timeout occur, terminate the process
       break;
     } else {
-      // Continue process as NAK not received
+      // Continue the process as NAK was not received
     }
     retry_count++;
     if (retry_count >= kFlushXmodemMaxRetryCount) {
-      // If retry count exceeds specified number, set return value to timed_out and terminate process
+      // If the retry count exceeds the specified number, set the return value to timed_out and terminate the process
       error = boost::system::error_code(boost::system::errc::timed_out, boost::system::system_category());
       break;
     }
   }
-  // Send initial block
+  // Send the first block
   if (error.value() == boost::system::errc::success) {
     error = SendFlushBlockData(flush_data, send_pos, block_number);
   }
@@ -555,8 +555,8 @@ ExxxReprograming::ErrorCode ExxxReprograming::FlushXmodem(const std::string& flu
   if (error.value() == boost::system::errc::success) {
     retry_count = 0;
     // Send firmware write data using XMODEM communication
-    // If no received data or NAK received 10 times consecutively, set return value to timed_out and terminate process
-    // If CAN (interruption) is received, set return value to timed_out and terminate process (do not retry such as retransmission)
+    // If there is no received data or NAK is received 10 times in a row, set the return value to timed_out and terminate the process
+    // If CAN (cancel) is received, set the return value to timed_out and terminate the process (do not retry)
     while (is_flush_xmodem) {
       receive_data = 0;
       error = ReceiveByte(receive_data);
@@ -567,11 +567,11 @@ ExxxReprograming::ErrorCode ExxxReprograming::FlushXmodem(const std::string& flu
       } else {
         switch (receive_data) {
           case kXmodemACK:
-            // Received normal response from PROP. Send next data
+            // Received a normal response from PROP. Send the next data
             retry_count = 0;
             send_pos += kXmodemDataSize;
             block_number++;
-            // Output . every 10% write
+            // Output . every 10% of writing
             flush_ratio = ((send_pos * 10) / flush_data.length());
             if (flush_ratio > 10) {
               flush_ratio = 10;
@@ -581,9 +581,9 @@ ExxxReprograming::ErrorCode ExxxReprograming::FlushXmodem(const std::string& flu
             }
             output_count = flush_ratio;
             if (send_pos >= flush_data.length()) {
-              // Send EOT (transfer end) as write data transmission is complete
-              // If PROP amp firmware has remaining write data internally, it writes and returns response.
-              // If no write data is held, it returns response immediately.
+              // Since the write data transmission is complete, send EOT (transfer end)
+              // If the PROP amp firmware still has remaining write data internally, it will write and respond.
+              // If there is no remaining write data, it will respond immediately.
               error = SendCommand(kXmodemEOT, kFlushFinishMessage);
               is_flush_xmodem = false;
             } else {
@@ -594,7 +594,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::FlushXmodem(const std::string& flu
             }
             break;
           case kXmodemNAK:
-            // Retransmission
+            // Resend
             retry_count++;
             if (retry_count < kFlushXmodemMaxRetryCount) {
               error = SendFlushBlockData(flush_data, send_pos, block_number);
@@ -604,7 +604,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::FlushXmodem(const std::string& flu
             }
             break;
           case kXmodemCAN:
-            // Interruption. Set return value to timed_out and terminate process
+            // Cancel. Set the return value to timed_out and terminate the process
             error = boost::system::error_code(boost::system::errc::timed_out, boost::system::system_category());
             is_flush_xmodem = false;
             break;
@@ -614,7 +614,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::FlushXmodem(const std::string& flu
         }
       }
       if (retry_count >= kFlushXmodemMaxRetryCount) {
-        // If retry count exceeds specified number, set return value to timed_out and terminate process
+        // If the retry count exceeds the specified number, set the return value to timed_out and terminate the process
         error = boost::system::error_code(boost::system::errc::timed_out, boost::system::system_category());
         break;
       }
@@ -631,15 +631,15 @@ ExxxReprograming::ErrorCode ExxxReprograming::FlushXmodem(const std::string& flu
 }
 
 /**
- * @brief Send command and confirm reception of confirmation message
+ * @brief Send a command and confirm the reception of a confirmation message
  *
- * @param[in]  command        Transmission command
+ * @param[in]  command        Command to send
  * @param[in]  check_message  Confirmation message
  * @return
  * boost::system::errc::success  Confirmation message received
  * boost::system::errc::timed_out  Command transmission timeout and message reception timeout
- * boost::system::errc::value_too_large  Timeout measurement variable overflowed
- * boost::system::errc::invalid_argument  Wait for specified time failed
+ * boost::system::errc::value_too_large  Overflow of variable for timeout measurement
+ * boost::system::errc::invalid_argument  Failed to wait for the specified time
  * Return errors that occur with write
  */
 ExxxReprograming::ErrorCode ExxxReprograming::SendCommand(const uint8_t command, const std::string& check_message) {
@@ -653,16 +653,16 @@ ExxxReprograming::ErrorCode ExxxReprograming::SendCommand(const uint8_t command,
     }
     error = CheckReceivedMessage(check_message);
     if (error.value() == boost::system::errc::success) {
-      // Confirmation message received, terminate process
+      // Since the confirmation message was received, terminate the process
       break;
     } else if ((error.value() != boost::system::errc::timed_out) &&
                (error.value() != boost::system::errc::illegal_byte_sequence)) {
-      // If not timeout and confirmation message not received, terminate process without retry
+      // If errors other than timeout and confirmation message not received occur, do not retry and terminate the process
       break;
     } else {
       retry_count++;
       if (retry_count >= kSendCommandMaxRetryCount) {
-        // If retry count exceeds specified number, set return value to timed_out and terminate process
+        // If the retry count exceeds the specified number, set the return value to timed_out and terminate the process
         error = boost::system::error_code(boost::system::errc::timed_out, boost::system::system_category());
         break;
       }
@@ -676,14 +676,14 @@ ExxxReprograming::ErrorCode ExxxReprograming::SendCommand(const uint8_t command,
 }
 
 /**
- * @brief Confirm reception of confirmation message
+ * @brief Confirm the reception of a confirmation message
  *
  * @param[in]  check_message  Confirmation message
  * @return
  * boost::system::errc::success  Confirmation message received
  * boost::system::errc::illegal_byte_sequence  Confirmation message not received
  * boost::system::errc::timed_out  Message reception timeout
- * boost::system::errc::value_too_large  Reception timeout measurement variable overflowed
+ * boost::system::errc::value_too_large  Overflow of variable for reception timeout measurement
  * Return errors that occur with poll, read
  */
 ExxxReprograming::ErrorCode ExxxReprograming::CheckReceivedMessage(const std::string& check_message) {
@@ -692,8 +692,8 @@ ExxxReprograming::ErrorCode ExxxReprograming::CheckReceivedMessage(const std::st
 
   error = ReceiveLine(receive_message);
   if (error.value() == boost::system::errc::success) {
-    // If 1 line reception succeeds, confirm if confirmation message is received
-    // If confirmation message is not in received data, set return value to illegal_byte_sequence
+    // If one line is successfully received, check if the confirmation message is in the received data
+    // If the confirmation message is not in the received data, set the return value to illegal_byte_sequence
     if (receive_message.find(check_message) == std::string::npos) {
       error = boost::system::error_code(boost::system::errc::illegal_byte_sequence, boost::system::system_category());
     }
@@ -708,10 +708,10 @@ ExxxReprograming::ErrorCode ExxxReprograming::CheckReceivedMessage(const std::st
  * @param[in]  send_pos       Write start position
  * @param[in]  block_number   Block number
  * @return
- * boost::system::errc::success  Write data transmission succeeded
+ * boost::system::errc::success  Write data transmission successful
  * boost::system::errc::timed_out  Write data transmission timeout
- * boost::system::errc::value_too_large  Write data transmission timeout measurement variable overflowed
- * boost::system::errc::invalid_argument  Wait for specified time failed
+ * boost::system::errc::value_too_large  Overflow of variable for write data transmission timeout measurement
+ * boost::system::errc::invalid_argument  Failed to wait for the specified time
  * Return errors that occur with write
  */
 ExxxReprograming::ErrorCode ExxxReprograming::SendFlushBlockData(const std::string& flush_data,
@@ -725,20 +725,20 @@ ExxxReprograming::ErrorCode ExxxReprograming::SendFlushBlockData(const std::stri
   send_buffer[kXmodemHeaderPos]          = kXmodemSOH;
   send_buffer[kXmodemBlockNumberPos]     = block_number;
   send_buffer[kXmodemBlockNumberCompPos] = (~block_number & 0xFF);
-  // Check if remaining data is less than 128
+  // Check if the remaining data is less than 128
   if ((flush_data.length() - send_pos) < kXmodemDataSize) {
     data_size = flush_data.length() - send_pos;
   }
   for (uint32_t i = 0; i < data_size; ++i) {
     send_buffer[kXmodemHeaderSize + i] = flush_data[send_pos + i];
   }
-  // If write data is less than 128 bytes, fill the remainder with EOF
+  // If the write data is less than 128 bytes, fill the remainder with EOF
   for (uint32_t i = data_size; i < kXmodemDataSize; ++i) {
     send_buffer[kXmodemHeaderSize + i] = kXmodemEOF;
   }
-  // Checksum calculation Add data section
+  // Checksum calculation Add data part
   for (uint32_t i = 0; i < kXmodemDataSize; ++i) {
-    // Checksum is lower 8-bit two's complement
+    // Checksum is the two's complement of the lower 8 bits
     check_sum += send_buffer[kXmodemHeaderSize + i];
   }
   send_buffer[kXmodemCheckSumPos] = check_sum;
@@ -750,12 +750,12 @@ ExxxReprograming::ErrorCode ExxxReprograming::SendFlushBlockData(const std::stri
  * @brief Transmit specified bytes
  *
  * @param[in]  data        Transmission buffer
- * @param[in]  data_bytes  Number of transmission bytes
+ * @param[in]  data_bytes  Number of bytes to transmit
  * @return
- * boost::system::errc::success  Successfully transmitted data of specified bytes
- * boost::system::errc::timed_out  Timeout without transmitting data of specified bytes
- * boost::system::errc::value_too_large  Timeout measurement variable overflowed
- * boost::system::errc::invalid_argument  Wait for specified time failed
+ * boost::system::errc::success  Successfully transmitted the specified number of bytes
+ * boost::system::errc::timed_out  Failed to transmit the specified number of bytes within the timeout
+ * boost::system::errc::value_too_large  Overflow of variable for timeout measurement
+ * boost::system::errc::invalid_argument  Failed to wait for the specified time
  * Return errors that occur with write
  */
 ExxxReprograming::ErrorCode ExxxReprograming::SendData(const uint8_t* data, uint32_t data_bytes) {
@@ -771,7 +771,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::SendData(const uint8_t* data, uint
         error = boost::system::error_code(errno, boost::system::system_category());
         break;
       } else {
-        // If return value is EAGAIN, wait for specified time and continue transmission process
+        // If the return value is EAGAIN, wait for the specified time and continue the transmission process
         error = WaitNanoSec(sleep_tick_);
         if (error.value() != boost::system::errc::success) {
           break;
@@ -780,13 +780,13 @@ ExxxReprograming::ErrorCode ExxxReprograming::SendData(const uint8_t* data, uint
     } else {
       num_done += result;
       if (num_done == data_bytes) {
-        // If number of transmission bytes equals argument data_bytes, set return value to success and terminate process
+        // If the number of transmitted bytes equals the argument data_bytes, set the return value to success and terminate the process
         error = boost::system::error_code(boost::system::errc::success, boost::system::system_category());
         break;
       } else if (num_done > data_bytes) {
         RCLCPP_FATAL(rclcpp::get_logger("exxx_reprograming"), "NOT REACHED");
       } else {
-        // Continue transmission process as number of transmission bytes has not reached argument data_bytes
+        // Since the number of transmitted bytes has not reached the argument data_bytes, continue the transmission process
       }
     }
     int64_t last_elapsed = elapsed;
@@ -798,7 +798,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::SendData(const uint8_t* data, uint
     }
   }
   if (num_done != data_bytes) {
-    // If unable to transmit number of bytes in argument data_bytes, set return value to timed_out
+    // If the number of bytes transmitted is less than the argument data_bytes, set the return value to timed_out
     error = boost::system::error_code(boost::system::errc::timed_out, boost::system::system_category());
   }
   return error;
@@ -812,8 +812,8 @@ ExxxReprograming::ErrorCode ExxxReprograming::SendData(const uint8_t* data, uint
  * @param[out] receive_line  Received data
  * @return
  * boost::system::errc::success  Successfully received until delimiter
- * boost::system::errc::timed_out  Timeout without receiving delimiter (set received data to receive_line)
- * boost::system::errc::value_too_large  Timeout measurement variable overflowed
+ * boost::system::errc::timed_out  Timeout without receiving delimiter (received data is set in receive_line)
+ * boost::system::errc::value_too_large  Overflow of variable for timeout measurement
  * Return errors that occur with poll, read
  */
 ExxxReprograming::ErrorCode ExxxReprograming::ReceiveLine(std::string& receive_line) {
@@ -828,15 +828,15 @@ ExxxReprograming::ErrorCode ExxxReprograming::ReceiveLine(std::string& receive_l
     // Receive 1 byte
     error = ReceiveByte(receive_data);
     if (error.value() == boost::system::errc::timed_out) {
-      // Continue process in case of timeout
+      // Continue the process in case of timeout
     } else if (error.value() != boost::system::errc::success) {
-      // If not success or timed_out, return occurred error
+      // If the error is not success or timed_out, return the occurred error
       break;
     } else {
       receive_message.push_back(receive_data);
       recv_size++;
       if ((receive_data == kReceiveLineDelimiter1) || (receive_data == kReceiveLineDelimiter2)) {
-        // If delimiter is received, set received data to argument receive_line and set return value to success
+        // If the delimiter is received, set the received data in the argument receive_line and set the return value to success
         receive_line = receive_message;
         error = boost::system::error_code(boost::system::errc::success, boost::system::system_category());
         break;
@@ -852,7 +852,7 @@ ExxxReprograming::ErrorCode ExxxReprograming::ReceiveLine(std::string& receive_l
   }
   if ((elapsed - start) >= timeout_) {
     if (recv_size != 0) {
-      // If data is received during timeout, set received data to argument receive_line and set return value to success
+      // If data was received during timeout, set the received data in the argument receive_line and set the return value to success
       error = boost::system::error_code(boost::system::errc::success, boost::system::system_category());
       receive_line = receive_message;
     }

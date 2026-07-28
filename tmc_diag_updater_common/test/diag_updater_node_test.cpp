@@ -43,7 +43,7 @@ class DiagUpdaterNodeTest : public testing::Test {
 
   virtual ~DiagUpdaterNodeTest() = default;
 
-  // Process at the start of each test
+  // Processing at the start of each test
   void SetUp() override {
     imu_pub_.reset(new test_utils::CyclicImuPublisher(node_));
     diag_sub_.reset(new test_utils::DiagCacheSubscriber(node_));
@@ -54,9 +54,9 @@ class DiagUpdaterNodeTest : public testing::Test {
     cache_length_greater_than_3_ = [this]() { return diag_sub_->GetQueueLength() > 3; };
   }
 
-  // Process at the end of each test
-  // - End of Publish
-  // - End of Subscription
+  // Processing at the end of each test
+  // - Publish completed
+  // - Subscription completed
   void TearDown() override {
     imu_pub_.reset();
 
@@ -70,7 +70,7 @@ class DiagUpdaterNodeTest : public testing::Test {
   }
 
  protected:
-  // Send/Receive Confirmation Utilities
+  // Send/receive confirmation utilities
   std::function<bool()> imu_is_subscribed_;
   std::function<bool()> diag_is_advertised_;
   std::function<bool()> cache_length_greater_than_3_;
@@ -80,7 +80,7 @@ class DiagUpdaterNodeTest : public testing::Test {
   test_utils::DiagCacheSubscriber::SharedPtr diag_sub_;
   rclcpp::Node::SharedPtr node_;
 };
-// Inform that there are no topics at the initial startup
+// Notify that there are no topics initially upon startup
 TEST_F(DiagUpdaterNodeTest, DefaultDiag) {
   // Setup
   // None
@@ -102,7 +102,7 @@ TEST_F(DiagUpdaterNodeTest, DefaultDiag) {
   EXPECT_TRUE(diag_msg.status[0].message.find("Disconnected") != std::string::npos);
   EXPECT_STREQ(diag_msg.status[0].hardware_id.c_str(), "imu");
 }
-// Should get OK if the expected Imu data is output
+// Should return OK when the expected IMU data is output
 TEST_F(DiagUpdaterNodeTest, GetOkDiag) {
   // Setup
   sensor_msgs::msg::Imu imu_msg;
@@ -132,8 +132,8 @@ TEST_F(DiagUpdaterNodeTest, GetOkDiag) {
       std::abs(test_utils::PickUpDiagValueOf("Actual rate (Hz)", diag_msg.status[0].values) - publish_hz);
   EXPECT_LT(diff_hz, kPermissibleRateError);
 }
-// Should return an abnormal Diag if the frame_id is incorrect
-// Phenomenon confirmed with tmc_adi_driver
+// Should return an abnormal diagnostic if the frame_id is incorrect
+// Phenomenon confirmed in tmc_adi_driver
 TEST_F(DiagUpdaterNodeTest, GetUnExpectedFrameIdError) {
   // Setup
   sensor_msgs::msg::Imu imu_msg;
@@ -159,8 +159,8 @@ TEST_F(DiagUpdaterNodeTest, GetUnExpectedFrameIdError) {
   EXPECT_STREQ(diag_msg.status[0].hardware_id.c_str(), "imu");
 }
 
-// Send IMU topic slightly lower than the expected frequency to trigger WARN
-// Should return WARN level
+// Send IMU topics at a slightly lower frequency than expected to trigger a WARN
+// Should return a WARN level
 TEST_F(DiagUpdaterNodeTest, GetSlightlyLowRatencyWarn) {
   // Setup
   sensor_msgs::msg::Imu imu_msg;
@@ -190,8 +190,8 @@ TEST_F(DiagUpdaterNodeTest, GetSlightlyLowRatencyWarn) {
   EXPECT_LT(diff_hz, kPermissibleRateError);
 }
 
-// Send IMU topic even lower than the above test to trigger ERROR
-// Should return ERROR level
+// Send IMU topics at an even lower frequency than the above test to trigger an ERROR
+// Should return an ERROR level
 TEST_F(DiagUpdaterNodeTest, GetSignificantlyLowRatencyError) {
   // Setup
   sensor_msgs::msg::Imu imu_msg;
@@ -221,7 +221,7 @@ TEST_F(DiagUpdaterNodeTest, GetSignificantlyLowRatencyError) {
   EXPECT_LT(diff_hz, kPermissibleRateError);
 }
 
-// Should be ERROR if the flow of time is reversed
+// Should return an ERROR if time appears to flow backward
 TEST_F(DiagUpdaterNodeTest, GetPastTimestamp) {
   // Setup
   sensor_msgs::msg::Imu imu_msg;
@@ -248,7 +248,7 @@ TEST_F(DiagUpdaterNodeTest, GetPastTimestamp) {
   EXPECT_STREQ(diag_msg.status[0].hardware_id.c_str(), "imu");
 }
 
-// Should be ERROR if the flow of time is stopped
+// Should return an ERROR if time appears to have stopped
 TEST_F(DiagUpdaterNodeTest, GetTheSameTimestamp) {
   // Setup
   sensor_msgs::msg::Imu imu_msg;
@@ -275,7 +275,7 @@ TEST_F(DiagUpdaterNodeTest, GetTheSameTimestamp) {
   EXPECT_STREQ(diag_msg.status[0].hardware_id.c_str(), "imu");
 }
 
-// Should return if multiple Diags of the same level occur
+// Should return when multiple diagnostics of the same level occur
 TEST_F(DiagUpdaterNodeTest, GetMultiErrorDiag) {
   // Setup
   sensor_msgs::msg::Imu imu_msg;
@@ -303,15 +303,15 @@ TEST_F(DiagUpdaterNodeTest, GetMultiErrorDiag) {
   EXPECT_STREQ(diag_msg.status[0].hardware_id.c_str(), "imu");
 }
 
-// ERROR should be prioritized if WARN and ERROR occur simultaneously
+// ERROR should take precedence if WARN and ERROR occur simultaneously
 //
 // - Priority by level
 //    OK < WARN < ERROR
 //
-// Of the two intentionally caused Diags below, the ERROR "Unexpected frame ID ERROR" is prioritized, and the level should be ERROR
+// Of the two intentionally triggered diagnostics below, the ERROR "Unexpected frame ID ERROR" should take precedence, and the level should be ERROR
 // - Unexpected frame ID(ERROR)
 // - Slightly low rate(WARN)
-// However, both messages will be displayed
+// Both messages will still be displayed
 TEST_F(DiagUpdaterNodeTest, GetErrorShovePastWARN) {
   // Setup
   sensor_msgs::msg::Imu imu_msg;
@@ -337,6 +337,48 @@ TEST_F(DiagUpdaterNodeTest, GetErrorShovePastWARN) {
   EXPECT_TRUE(diag_msg.status[0].message.find("Slightly low rate") != std::string::npos);
   EXPECT_TRUE(diag_msg.status[0].message.find("Unexpected frame ID") != std::string::npos);
   EXPECT_STREQ(diag_msg.status[0].hardware_id.c_str(), "imu");
+}
+
+// "Disconnected" should be output when the topic is interrupted
+TEST_F(DiagUpdaterNodeTest, GetDisconnectionError) {
+  // Setup
+  sensor_msgs::msg::Imu imu_msg;
+  imu_msg.linear_acceleration.z = -9.8;
+  imu_pub_->set_imu_msg(imu_msg);
+  const double publish_hz = 40.0;
+
+  // Exercise
+  ASSERT_TRUE(test_utils::WaitUntil(node_, imu_is_subscribed_, 3.0));
+  imu_pub_->StartPublishing<test_utils::DummySensorTimeForward>(node_->get_clock(), publish_hz);
+  diag_sub_->StartCaching();
+  test_utils::WaitUntilTimuout(node_, 3.0);
+  ASSERT_TRUE(test_utils::WaitUntil(node_, diag_is_advertised_, 3.0));
+  ASSERT_TRUE(test_utils::WaitUntil(node_, cache_length_greater_than_3_, 5.0));
+  diag_sub_->StopCaching();
+
+  // Verify
+  const diagnostic_msgs::msg::DiagnosticArray diag_msg = diag_sub_->GetLatestMessage();
+  EXPECT_EQ(diag_msg.status.size(), 1);
+  EXPECT_EQ(diag_msg.status[0].level, 2);
+  EXPECT_STREQ(diag_msg.status[0].name.c_str(), "imu_diag_updater: imu topic status");
+  EXPECT_TRUE(diag_msg.status[0].message.find("Disconnected") == std::string::npos);
+  EXPECT_STREQ(diag_msg.status[0].hardware_id.c_str(), "imu");
+
+  // Exercise
+  imu_pub_->StopPublishing();
+  diag_sub_->StartCaching();
+  test_utils::WaitUntilTimuout(node_, 3.0);
+  ASSERT_TRUE(test_utils::WaitUntil(node_, diag_is_advertised_, 3.0));
+  ASSERT_TRUE(test_utils::WaitUntil(node_, cache_length_greater_than_3_, 5.0));
+  diag_sub_->StopCaching();
+
+  // Verify
+  const diagnostic_msgs::msg::DiagnosticArray diag_msg_disconnection = diag_sub_->GetLatestMessage();
+  EXPECT_EQ(diag_msg_disconnection.status.size(), 1);
+  EXPECT_EQ(diag_msg_disconnection.status[0].level, 2);
+  EXPECT_STREQ(diag_msg_disconnection.status[0].name.c_str(), "imu_diag_updater: imu topic status");
+  EXPECT_TRUE(diag_msg_disconnection.status[0].message.find("Disconnected") != std::string::npos);
+  EXPECT_STREQ(diag_msg_disconnection.status[0].hardware_id.c_str(), "imu");
 }
 }  // namespace tmc_diag_updater_common
 

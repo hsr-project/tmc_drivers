@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file exxx_protocol.hpp
-/// Communication protocol for Exxx amplifier
+/// Communication protocol for Exxx amp
 #ifndef TMC_EXXX_SERVO_MOTOR_PROTOCOL_EXXX_PROTOCOL_HPP_
 #define TMC_EXXX_SERVO_MOTOR_PROTOCOL_EXXX_PROTOCOL_HPP_
 
@@ -151,7 +151,7 @@ class ExxxProtocol : public IDynamixelishProtocol, private boost::noncopyable {
     if (error) return error;
 
     error = network_->Receive(id, receive_buffer_);
-    // Return system error immediately
+    // system error is returned immediately
     if (error.category() == boost::system::system_category() && error) {
       return error;
     }
@@ -178,7 +178,7 @@ class ExxxProtocol : public IDynamixelishProtocol, private boost::noncopyable {
   /// @param[in] addr Address to write (common across nodes)
   /// @param[in] data Array of data to write
   /// @return ErrorCode
-  /// @pre The size of ids and data must be the same
+  /// @pre The sizes of ids and data must be the same
   template <typename T>
   ErrorCode SyncWriteData(std::vector<uint8_t> ids, uint16_t addr, std::vector<T> data) {
     if (ids.size() != data.size()) {

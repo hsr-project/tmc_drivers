@@ -44,7 +44,7 @@ const size_t kLengthBytes = 2;
 const size_t kErrorBytes = 2;
 const size_t kChecksumBytes = 1;
 const size_t kFooterBytes = 2;
-// Start position of items in the status packet
+// Starting position of items in the status packet
 const size_t kIDStartStatus = 2;
 const size_t kLengthStartStatus = 3;
 const size_t kErrorStartStatus = 5;
@@ -104,7 +104,7 @@ void ExxxNetwork::Init(std::string device_name, boost::system::error_code& error
       return;
     }
 
-    // Set low latency (Not required for Kernel 5.4)
+    // Set low latency (not required for Kernel 5.4)
     struct utsname utsname;
     // Check if the first three characters of the kernel version are 4.4
     if ((uname(&utsname) == 0) && (std::string(utsname.release).compare(0, 3, "4.4") == 0)) {

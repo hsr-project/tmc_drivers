@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file exxx_warning_category.hpp
-/// Error code for Boost.System corresponding to Exxx warning status
+/// Error code for Boost.System corresponding to the warning status of Exxx
 #ifndef TMC_EXXX_SERVO_MOTOR_PROTOCOL_EXXX_WARNING_CATEGORY_HPP_
 #define TMC_EXXX_SERVO_MOTOR_PROTOCOL_EXXX_WARNING_CATEGORY_HPP_
 
@@ -36,7 +36,7 @@ namespace tmc_exxx_servo_motor_protocol {
 
 const boost::system::error_category& ExxxWarningCategory();
 
-/// Define custom warning_code
+/// Define a custom warning_code
 namespace exxx_warning_code {
 
 /// Represents flags set in the bit field

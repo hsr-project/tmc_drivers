@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief      Test camera system plugin
+/// @brief      Camera system plugin for testing
 #include <chrono>
 #include <memory>
 #include <optional>
@@ -37,7 +37,7 @@ DAMAGE.
 
 namespace tmc_pgr_camera {
 
-/// @brief Test camera system
+/// @brief Camera system for testing
 class DummyCameraSystemPlugin : public ICameraSystemPluginBase {
  public:
   /// Constructor
@@ -64,14 +64,14 @@ class DummyCameraSystemPlugin : public ICameraSystemPluginBase {
   /// Stop capturing
   virtual void StopCapture() { is_capturing = false; }
 
-  /// Get captured image
+  /// Retrieve captured images
   virtual std::optional<std::vector<ImagePtr> > GrabImage() {
     ImagePtr image(new Image());
     image->image = cv::Mat::eye(5, 5, CV_8U);
     image->time = std::chrono::system_clock::now();
     std::vector<ImagePtr> images;
     const std::vector<uint32_t> serial_numbers = camera_system_settings_->GetSerialNumbers();
-    for (int32_t i = 0; i < serial_numbers.size(); ++i) {
+    for (uint32_t i = 0; i < serial_numbers.size(); ++i) {
       images.push_back(image);
     }
     return images;
@@ -83,8 +83,8 @@ class DummyCameraSystemPlugin : public ICameraSystemPluginBase {
   /// Check if capturing is in progress
   virtual bool IsCapturing() const { return is_capturing; }
 
-  /// Configure the camera
-  virtual void SetSettings(const YAML::Node& settings) {
+  /// Configure the camera settings
+  virtual void SetSettings(const YAML::Node& /* settings */) {
     // Not possible in ROS 2
     // ros::param::set("test_dynamic_reconfigure_callback_setting", settings);
   }

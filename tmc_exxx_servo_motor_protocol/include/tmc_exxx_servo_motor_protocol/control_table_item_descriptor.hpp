@@ -42,7 +42,7 @@ class ControlTableItemDescriptor {
   using Ptr = std::shared_ptr<ControlTableItemDescriptor>;
   using ConstPtr = std::shared_ptr<const ControlTableItemDescriptor>;
 
-  /// Type of the type
+  /// Type of the data
   enum ValueType {
     kUInt8 = 1,
     kInt8,
@@ -58,37 +58,37 @@ class ControlTableItemDescriptor {
 
   /// Constructor
   /// @param[in] type Type of this entry
-  /// @param[in] initial_address Initial address of this entry
+  /// @param[in] initial_address Starting address of this entry
   /// @param[in] attribute Attribute of this entry
   /// @param[in] coefficient_mks Conversion coefficient to MKS unit system
   ControlTableItemDescriptor(ValueType type, uint16_t initial_address, const std::string& attribute,
                              double coefficient_mks);
 
-  /// Convert byte array to MKS unit double
-  /// @param[in] bytes Value to convert
-  /// @param[out] success Success or failure. Returns an error if the bytes provided as an argument are short
+  /// Convert byte array to double in MKS units
+  /// @param[in] bytes Value to be converted
+  /// @param[out] success Success or failure. Returns an error if the provided bytes are too short
   /// @return Success or failure. Fails if the size of bytes is not equal to the byte size of type()
   bool ConvertToMKS(const std::vector<uint8_t>& bytes, double& mks_value_out) const;
 
-  /// Convert byte array to MKS unit double
-  /// @param[in] bytes_begin Pointer to the value to convert
-  /// @param[out] success Success or failure. Returns an error if the bytes provided as an argument are short
+  /// Convert byte array to double in MKS units
+  /// @param[in] bytes_begin Pointer to the value to be converted
+  /// @param[out] success Success or failure. Returns an error if the provided bytes are too short
   /// @return Success or failure. Fails if the size of bytes is not equal to the byte size of type()
   bool ConvertToMKS(const uint8_t* bytes_begin, double& mks_value_out) const;
 
-  /// Convert MKS unit to byte array
-  /// @param[in] bytes Initial address of the value to convert
-  /// @param[out] Return value in MKS unit
+  /// Convert MKS units to byte array
+  /// @param[in] bytes Starting address of the value to be converted
+  /// @param[out] Return value in MKS units
   /// @return Success or failure. Fails if mks_value overflows
   bool ConvertToBytes(double mks_value, std::vector<uint8_t>& bytes_out) const;
 
   /// Type
   ValueType type() const { return type_; }
 
-  /// Initial address
+  /// Starting address
   uint16_t initial_address() const { return initial_address_; }
 
-  /// Final address of this entry +1 (initial address + byte size)
+  /// The final address of this entry +1 (initial address + byte size)
   uint16_t final_address() const { return final_address_; }
 
   /// Attribute

@@ -75,23 +75,23 @@ class ContiguousSameValueTest : public DiagUpdaterNodeTest, public ::testing::Wi
 INSTANTIATE_TEST_CASE_P(
     ValidateBehaviorWithParam, ContiguousSameValueTest,
     testing::Values(
-        // The test subject holds data, so the result changes depending on the order in which the data is provided
-        // A test group that gradually reduces the number of fluctuating properties and confirms that an error occurs when crossing the threshold
+        // The test target holds data, so the results vary depending on the order in which data is provided.
+        // A test group to confirm that reducing the number of fluctuating properties gradually and crossing the threshold results in an error.
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "xy", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "x", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "", 100 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },
-        // Temporarily return to normal and check if it works with different properties
+        // Temporarily return to normal and check if it works with another property.
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xy", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "x", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "", "xyz", 100 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },
-        // Temporarily return to normal and check if it works even when stopping the updates of angle velocity and acceleration
+        // Temporarily return to normal and check if it works even when updates to angular velocity, acceleration, and each are stopped.
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xy", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xy", "xy", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "x", "xy", 100 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },
-        // Temporarily return to normal and confirm that an error occurs when crossing the consecutive count threshold
+        // Temporarily return to normal and confirm that crossing the consecutive count threshold results in an error.
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 0
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 1
@@ -99,7 +99,7 @@ INSTANTIATE_TEST_CASE_P(
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 3
         TestParam{ { "xyz", "", 1 }, { 1, Level::kOK, kName, "OK", kHardwareID } },                        // 4
         TestParam{ { "xyz", "", 1 }, { 1, Level::kError, kName, "Contiguous same value", kHardwareID } },  // 5(Error)
-        // Ensure recovery
+        // Ensure recovery.
         TestParam{ { "xyz", "xyz", 100 }, { 1, Level::kOK, kName, "OK", kHardwareID } }));
 
 TEST_P(ContiguousSameValueTest, ValidateBehaviorWithParam) {
@@ -119,7 +119,7 @@ TEST_P(ContiguousSameValueTest, ValidateBehaviorWithParam) {
     imu_pub_->PublishOnce();
     rate.sleep();
   }
-  ASSERT_TRUE(WaitUntil(node_, cache_length_greater_than_3_, 10.0));
+  ASSERT_TRUE(WaitUntil(node_, cache_length_greater_than_5_, 10.0));
   diag_sub_->StopCaching();
 
   // Verify

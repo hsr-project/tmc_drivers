@@ -55,7 +55,7 @@ class ICameraSystemPluginBase {
 
   /// Start the camera system
   virtual void Open() = 0;
-  /// Terminate the camera system
+  /// Shut down the camera system
   virtual void Close() = 0;
 
   /// Start capturing
@@ -63,7 +63,7 @@ class ICameraSystemPluginBase {
   /// Stop capturing
   virtual void StopCapture() = 0;
 
-  /// Obtain captured images
+  /// Retrieve captured images
   virtual std::optional<std::vector<ImagePtr> > GrabImage() = 0;
 
   /// Check if the camera system is running

@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Test of the Point Grey camera system
+/// @brief      Test of the Point Grey camera system
 #include <filesystem>
 #include <list>
 #include <memory>
@@ -44,7 +44,7 @@ namespace {
 // Camera configuration file
 const char* kCameraSystemSettingFileName = "test/config/default.yml";
 
-// Configuration file without self-trigger settings even though self-trigger is ON
+// Configuration file without self-trigger settings when self-trigger is ON
 const char* kMissingSelfTrigerSettingFileName = "test/config/get_trigger_mode_abnormal_00.yml";
 }
 
@@ -53,7 +53,7 @@ namespace tmc_pgr_camera {
 /// @brief Test fixture for the Point Grey camera system
 class PointGreyCameraSystemTest : public testing::Test {
  protected:
-  /// Initialization of the camera system
+  /// Camera system initialization
   void SetUp() {
     ASSERT_NO_THROW(camera_setting_.reset(
       new YamlPointGreyCameraSystemSetting(kCameraSystemSettingFileName)));
@@ -65,7 +65,7 @@ class PointGreyCameraSystemTest : public testing::Test {
   std::shared_ptr<IPointGreyCameraSystemSetting> camera_setting_;
 };
 
-/// @brief Whether the camera system starts up correctly
+/// @brief Check if the camera system starts up correctly
 TEST_F(PointGreyCameraSystemTest, LaunchCameraSystemNormal) {
   ASSERT_NO_THROW(camera_setting_.reset(
     new YamlPointGreyCameraSystemSetting(kCameraSystemSettingFileName)));
@@ -78,9 +78,9 @@ TEST_F(PointGreyCameraSystemTest, LaunchCameraSystemNormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 }
 
-/// @brief Camera system does not start up correctly
+/// @brief Camera system fails to start up correctly
 TEST_F(PointGreyCameraSystemTest, LaunchCameraSystemAbnormal) {
-  // Configuration is not specified even though self-trigger is ON
+  // Self-trigger is ON but the settings are not described
   ASSERT_TRUE(std::filesystem::exists(
       kMissingSelfTrigerSettingFileName));
   ASSERT_NO_THROW(camera_setting_.reset(
@@ -113,17 +113,17 @@ TEST_F(PointGreyCameraSystemTest, StartCaptureNormal) {
 TEST_F(PointGreyCameraSystemTest, StopCaptureNormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
-  // No error is thrown even when called in a non-capturing state
+  // No error occurs even when called in a non-capturing state
   ASSERT_NO_THROW(camera_system_->StopCapture());
 
-  // Capture ends
+  // Capture stops
   ASSERT_NO_THROW(camera_system_->StartCapture());
   ASSERT_TRUE(camera_system_->IsCapturing());
   ASSERT_NO_THROW(camera_system_->StopCapture());
   ASSERT_FALSE(camera_system_->IsCapturing());
 }
 
-/// @brief Image can be obtained
+/// @brief Images can be obtained
 TEST_F(PointGreyCameraSystemTest, GrabImageNormal) {
   ASSERT_NO_THROW(camera_system_->Open());
   ASSERT_NO_THROW(camera_system_->StartCapture());
@@ -134,18 +134,18 @@ TEST_F(PointGreyCameraSystemTest, GrabImageNormal) {
   ASSERT_EQ(2, images->size());
   ASSERT_EQ(images->at(0)->time, images->at(1)->time);
 
-  // Verification that the obtained image is correct
+  // Verify that the obtained images are correct
   ASSERT_EQ(960, images->at(0)->image.rows);
   ASSERT_EQ(1280, images->at(0)->image.cols);
   ASSERT_EQ(960, images->at(1)->image.rows);
   ASSERT_EQ(1280, images->at(1)->image.cols);
 }
 
-/// @brief Verify if the configuration is successful
+/// @brief Verify if the settings are applied correctly
 TEST_F(PointGreyCameraSystemTest, SetSettingNormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
-  // Verify if the following can be configured
+  // Verify if the following can be set
   // {
   //   property: [
   //     { type: brightness, absValue: 0.0, ..., onePush: on }
@@ -168,7 +168,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingNormal) {
 
   ASSERT_NO_THROW(camera_system_->SetSettings(setting));
 
-  // Verify if trigger_mode can be configured
+  // Verify if trigger_mode can be set
   YAML::Node trigger_mode;
   trigger_mode["type"] = std::string("trigger_mode");
   trigger_mode["mode"] = 0;
@@ -181,22 +181,22 @@ TEST_F(PointGreyCameraSystemTest, SetSettingNormal) {
   ASSERT_NO_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Configuration fails when the camera is not started
+/// @brief Fails to set when the camera is not running
 TEST_F(PointGreyCameraSystemTest, SetSettingWithoutOpenAbnormal) {
   YAML::Node setting;
   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Configuration fails with empty values
+/// @brief Fails to set with an empty value
 TEST_F(PointGreyCameraSystemTest, SetSettingWithEmptyValueAbnormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
-  // Setting is not TypeStruct
+  // Setting is not of TypeStruct
   YAML::Node setting;
   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Configuration fails without specifying property type
+/// @brief Fails to set without specifying the property type
 TEST_F(PointGreyCameraSystemTest, SetSettingWithoutTypeAbnormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
@@ -217,7 +217,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithoutTypeAbnormal) {
   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Configuration fails with an invalid property type
+/// @brief Fails to set with an invalid property type
 TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
   ASSERT_NO_THROW(camera_system_->Open());
 
@@ -239,8 +239,8 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 }
 
-/// @brief Configuration fails with an invalid value
-/// Due to the change from XmlRpc to YAML, differences in numeric types are absorbed.
+/// @brief Fails to set with an invalid value
+///  Changed from XmlRpc to YAML, so differences in numeric types are absorbed.
 // TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidValueAbnormal) {
 //   ASSERT_NO_THROW(camera_system_->Open());
 
@@ -262,7 +262,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   trigger_mode["onOff"] = true;
 //   trigger_mode["polarity"] = 0;
 
-//   // present is not boolean
+//   // present is not a boolean
 //   brightness["present"] = 10;
 //   properties.reset();
 //   properties.push_back(brightness);
@@ -270,7 +270,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 //   brightness["present"] = true;
 
-//   // absControl is not boolean
+//   // absControl is not a boolean
 //   brightness["absControl"] = 10;
 //   properties.reset();
 //   properties.push_back(brightness);
@@ -278,7 +278,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 //   brightness["absControl"] = true;
 
-//   // onePush is not boolean
+//   // onePush is not a boolean
 //   brightness["onePush"] = 10;
 //   properties.reset();
 //   properties.push_back(brightness);
@@ -286,7 +286,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 //   brightness["onePush"] = true;
 
-//   // onOff is not boolean
+//   // onOff is not a boolean
 //   brightness["onOff"] = 10;
 //   properties.reset();
 //   properties.push_back(brightness);
@@ -294,7 +294,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 //   brightness["onOff"] = true;
 
-//   // autoManualMode is not boolean
+//   // autoManualMode is not a boolean
 //   brightness["autoManualMode"] = 10;
 //   properties.reset();
 //   properties.push_back(brightness);
@@ -302,7 +302,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 //   brightness["autoManualMode"] = true;
 
-//   // valueA is not int
+//   // valueA is not an int
 //   brightness["valueA"] = 0.0;
 //   properties.reset();
 //   properties.push_back(brightness);
@@ -310,7 +310,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 //   brightness["valueA"] = 0;
 
-//   // valueB is not int
+//   // valueB is not an int
 //   brightness["valueB"] = 0.0;
 //   properties.reset();
 //   properties.push_back(brightness);
@@ -318,7 +318,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 //   brightness["valueB"] = 0;
 
-//   // absValue is not double
+//   // absValue is not a double
 //   brightness["absValue"] = 0;
 //   properties.reset();
 //   properties.push_back(brightness);
@@ -326,7 +326,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 //   brightness["absValue"] = 0.0;
 
-//   // mode of trigger_mode is not int
+//   // mode of trigger_mode is not an int
 //   trigger_mode["mode"] = 0.0;
 //   properties.reset();
 //   properties.push_back(trigger_mode);
@@ -334,7 +334,7 @@ TEST_F(PointGreyCameraSystemTest, SetSettingWithInvalidTypeAbnormal) {
 //   ASSERT_ANY_THROW(camera_system_->SetSettings(setting));
 //   trigger_mode["mode"] = 0;
 
-//   // polarity of trigger_mode is not int
+//   // polarity of trigger_mode is not an int
 //   trigger_mode["polarity"] = 0.0;
 //   properties.reset();
 //   properties.push_back(trigger_mode);

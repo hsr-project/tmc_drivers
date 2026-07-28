@@ -48,7 +48,7 @@ inline CameraSystemPlugin<CameraSystem>::CameraSystemPlugin()
     : camera_() {}
 
 /// @brief Plugin initialization function
-/// @param camera_setting_file_path Path to the camera setting file
+/// @param camera_setting_file_path Path to the camera settings file
 template <class CameraSystem>
 inline void CameraSystemPlugin<CameraSystem>::Initialize(
     std::shared_ptr<IPointGreyCameraSystemSetting>& camera_setting) {
@@ -56,7 +56,7 @@ inline void CameraSystemPlugin<CameraSystem>::Initialize(
 }
 
 /// @brief Start the camera
-/// @param camera_setting_file_path Path to the camera setting file
+/// @param camera_setting_file_path Path to the camera settings file
 /// @exception std::runtime_error If called before initialization
 template <class CameraSystem>
 inline void CameraSystemPlugin<CameraSystem>::Open() {
@@ -66,7 +66,7 @@ inline void CameraSystemPlugin<CameraSystem>::Open() {
   camera_->Open();
 }
 
-/// @brief Terminate the camera
+/// @brief Stop the camera
 /// @exception std::runtime_error If called before initialization
 template <class CameraSystem>
 inline void CameraSystemPlugin<CameraSystem>::Close() {
@@ -96,7 +96,7 @@ inline void CameraSystemPlugin<CameraSystem>::StopCapture() {
   camera_->StopCapture();
 }
 
-/// @brief Obtain captured images
+/// @brief Retrieve captured images
 /// @return Array of captured images (images for each camera)
 /// @exception std::runtime_error If called before initialization
 template <class CameraSystem>
@@ -118,8 +118,8 @@ inline bool CameraSystemPlugin<CameraSystem>::IsOpened() const {
   return camera_->IsOpened();
 }
 
-/// @brief Check if capturing is being done
-/// @return Returns true if capturing is being done
+/// @brief Check if capturing is in progress
+/// @return Returns true if capturing is in progress
 /// @exception std::runtime_error If called before initialization
 template <class CameraSystem>
 inline bool CameraSystemPlugin<CameraSystem>::IsCapturing() const {

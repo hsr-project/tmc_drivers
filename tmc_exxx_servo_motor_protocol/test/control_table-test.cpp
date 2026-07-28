@@ -48,13 +48,13 @@ TEST(LoadFailTest, InCorrectFile) {
   EXPECT_EQ(ControlTable::kColumnSizeError, table.Load("test/test_csv_table/incorrect_table.csv"));
 }
 
-// File containing the same entry
+// File containing duplicate entries
 TEST(LoadFailTest, SameEntryFile) {
   ControlTable table;
   EXPECT_EQ(ControlTable::kAlreadyRecorded, table.Load("test/test_csv_table/same_entry.csv"));
 }
 
-// Type name is strange
+// Incorrect type name
 TEST(LoadFailTest, BadTypeFile) {
   ControlTable table;
   EXPECT_EQ(ControlTable::kBadType, table.Load("test/test_csv_table/bad_type.csv"));
@@ -66,7 +66,7 @@ TEST(LoadFailTest, CorrectFile) {
   EXPECT_EQ(ControlTable::kSuccess, table.Load("test/test_csv_table/correct_table.csv"));
 }
 
-// Test after reading
+// Test after loading
 class ControlTableTest : public ::testing::Test {
  public:
   ControlTableTest() { control_table_.Load("test/test_csv_table/correct_table.csv"); }
@@ -76,7 +76,7 @@ class ControlTableTest : public ::testing::Test {
   ControlTable control_table_;
 };
 
-// Check if md5 can be obtained correctly
+// Check if md5 is correctly obtained
 TEST_F(ControlTableTest, CheckMd5) {
   const uint8_t expect_md5[16] = { 0x2c, 0xae, 0xa0, 0xeb, 0xf5, 0xd9, 0x4c, 0xa8,
                                    0xf7, 0x54, 0xc6, 0x5b, 0xf4, 0x30, 0x91, 0x0e };
@@ -87,7 +87,7 @@ TEST_F(ControlTableTest, CheckMd5) {
   }
 }
 
-// Confirm if the specified descriptor can be properly retrieved
+// Verify if the specified descriptor is properly retrieved
 TEST_F(ControlTableTest, ReferItemDescriptor) {
   ControlTableItemDescriptor::Ptr value1 = control_table_.ReferItemDescriptor("value1");
   ASSERT_TRUE(value1);
@@ -392,7 +392,7 @@ TEST(ControlTableItemDescriptorTest, ConvertUint64) {
   EXPECT_EQ(0x56, table_bytes_ret[4]);
   EXPECT_EQ(0x9a, table_bytes_ret[3]);
   EXPECT_EQ(0x9b, table_bytes_ret[2]);
-  // Double precision limit
+  // Precision limit of double
   // EXPECT_EQ(0xe9, table_bytes_ret[1]);
   // EXPECT_EQ(0xbe, table_bytes_ret[0]);
 
@@ -432,7 +432,7 @@ TEST(ControlTableItemDescriptorTest, ConvertInt64) {
   EXPECT_EQ(0x56, table_bytes_ret[4]);
   EXPECT_EQ(0x9a, table_bytes_ret[3]);
   EXPECT_EQ(0x9b, table_bytes_ret[2]);
-  // Double precision limit
+  // Precision limit of double
   // EXPECT_EQ(0xe9, table_bytes_ret[1]);
   // EXPECT_EQ(0xbe, table_bytes_ret[0]);
 

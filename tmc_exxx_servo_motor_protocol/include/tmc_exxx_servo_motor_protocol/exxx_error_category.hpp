@@ -42,7 +42,7 @@ namespace exxx_error_code {
 
 
 /// Represents flags set in the bit field
-/// Enum has non-sequential values but takes composite values
+/// Enum has scattered values but takes composite values
 /// 0bit: OverTemperature
 /// 1bit: VoltageError
 /// 2bit: OverPosition
@@ -81,7 +81,7 @@ enum ExxxErrorCode {
 
 
 /// Represents flags set in the bit field
-/// Enum has non-sequential values but takes composite values
+/// Enum has scattered values but takes composite values
 /// 0bit: Unused
 /// 1bit: PowerSupplyMOSFETShortError
 /// 2bit: PowerSupplyMOSFETOpenError

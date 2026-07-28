@@ -1,7 +1,7 @@
 <package format="3">
   <name>tmc_pgr_camera</name>
-  <version>2.1.1</version>
-  <description>Driver node for Point Gray Cameras.</description>
+  <version>3.0.0</version>
+  <description>driver node for Point Gray Cameras.</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
   <license>BSD 3-clause Clear License</license>
   <url type="website" />

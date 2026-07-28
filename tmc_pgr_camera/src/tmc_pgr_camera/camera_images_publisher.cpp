@@ -29,14 +29,14 @@ DAMAGE.
 #include "tmc_pgr_camera/camera_images_publisher.hpp"
 #include <string>
 #include <vector>
-#include <cv_bridge/cv_bridge.h>
+#include <cv_bridge/cv_bridge.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
 namespace tmc_pgr_camera {
 
 /// @brief Constructor
 /// @param[in] node Node handle
-/// @param[in] image_topic_names Array of topic names for distributing images (for each camera)
+/// @param[in] image_topic_names Array of topic names for distributing images (one per camera)
 /// @param frame_id frame_id of the image message to be distributed
 CameraImagesPublisher::CameraImagesPublisher(const rclcpp::Node::SharedPtr& node_handle,
                                              const std::vector<std::string>& topic_names,
@@ -61,8 +61,8 @@ CameraImagesPublisher::CameraImagesPublisher(const rclcpp::Node::SharedPtr& node
 
 /// @brief Distribute images
 /// @param[in] camera_images Array of camera images to be distributed
-/// @exception std::runtime_error When the number of camera images does not match the number of Publishers
-/// @exception std::runtime_error When there are no camera images
+/// @exception std::runtime_error If the number of camera images does not match the number of publishers
+/// @exception std::runtime_error If no camera images exist
 void CameraImagesPublisher::Publish(const std::vector<ImagePtr>& camera_images) const {
   if (camera_images.size() < camera_image_publishers_.size()) {
     throw std::runtime_error(

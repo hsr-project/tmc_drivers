@@ -72,21 +72,21 @@ const uint32_t kGpioXtraPin3Address = 0x1144;
 
 // Register address for setting software trigger
 const uint32_t kSoftwareTriggerAddress = 0x62C;
-// Value when setting software trigger
+// Value when setting the software trigger
 const uint32_t kSoftwareTriggerSetValue = 0x80000000;
-// Value when resetting software trigger
+// Value when resetting the software trigger
 const uint32_t kSoftwareTriggerResetValue = 0x00000000;
-// Value when software trigger is in Busy state
+// Value when the software trigger is in a busy state
 const uint32_t kSoftwareTriggerStateBusy = 0x80000000;
-// Value when software trigger is in Ready state
+// Value when the software trigger is in a ready state
 const uint32_t kSoftwareTriggerStateReady = 0x00000000;
 
-// (Blackfly only) Register address for 3.3V output control
+// (Blackfly only) 3.3V output control register address
 const uint32_t kOutputVoltageEnableAddress = 0x19D0;
 
-// Register value when outputting 3.3V
+// Register value for 3.3V output
 const uint32_t kOutputVoltageEnableOn = 0x80000001;
-// Register value when not outputting 3.3V
+// Register value for no 3.3V output
 const uint32_t kOutputVoltageEnableOff = 0x80000000;
 }  // anonymous namespace
 
@@ -174,10 +174,10 @@ void PointGreyCamera::RestartCamera() {
   } while ((camera_power_status & kCameraPowerValue) == 0);
 }
 
-/// @brief Check if the software trigger can be hit
+/// @brief Check if the software trigger can be activated
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If state retrieval fails
-/// @return bool Whether it can be triggered
+/// @return bool Whether triggering is possible
 bool PointGreyCamera::GetSoftwareTrigger() {
   if (!camera_) {
     throw std::runtime_error("Camera does not exist.");
@@ -197,9 +197,9 @@ bool PointGreyCamera::GetSoftwareTrigger() {
 
 /// @brief Set properties
 /// @param[in] properties Array of properties to set
-/// @param[in] show_result Display on successful setting if true
+/// @param[in] show_result Display success message if true
 /// @exception std::runtime_error If the camera pointer is null
-/// @exception std::runtime_error If camera properties could not be set
+/// @exception std::runtime_error If camera properties cannot be set
 void PointGreyCamera::SetProperties(const std::vector<FlyCapture2::Property>& properties, const bool show_result) {
   if (!camera_) {
     throw std::runtime_error("Camera does not exist.");
@@ -240,6 +240,8 @@ void PointGreyCamera::SetProperties(const std::vector<FlyCapture2::Property>& pr
           setting_property.absControl = true;
         }
         break;
+      default:
+        break;
     }
 
     const FlyCapture2::Error error = camera_->SetProperty(&setting_property);
@@ -262,7 +264,7 @@ void PointGreyCamera::SetProperties(const std::vector<FlyCapture2::Property>& pr
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If setting fails
 /// @note If setting fails with non-Format7 parameters
-///       Only message output, no exception thrown
+///       Only output a message without throwing an exception
 void PointGreyCamera::SetVideoModeAndFrameRate(const FlyCapture2::VideoMode video_mode,
                                                const std::pair<FlyCapture2::FrameRate, float>& frame_rate) {
   if (!camera_) {
@@ -270,7 +272,7 @@ void PointGreyCamera::SetVideoModeAndFrameRate(const FlyCapture2::VideoMode vide
   }
   std::unique_lock<std::shared_mutex> write(access_);
 
-  // In case of FORMAT7 (manufacturer's method)
+  // In the case of FORMAT7 (manufacturer's method)
   if (video_mode == FlyCapture2::VIDEOMODE_FORMAT7) {
     if (frame_rate.first != FlyCapture2::FRAMERATE_FORMAT7) {
       throw std::runtime_error(
@@ -279,15 +281,15 @@ void PointGreyCamera::SetVideoModeAndFrameRate(const FlyCapture2::VideoMode vide
           "you should set frame rate to 'FRAMERATE_FORMAT7'");
     }
 
-    // Data of 83Ch
+    // 83Ch data
     uint32_t data = 0;
-    // Retrieve data of 83Ch
+    // Retrieve 83Ch data
     FlyCapture2::Error error = camera_->ReadRegister(kFrameRateAddress, &data);
     if (error.GetType() != FlyCapture2::PGRERROR_OK) {
       const std::string description(error.GetDescription());
       throw std::runtime_error("Failed to read camera frame rate settings.\n" + description);
     }
-    // Set 1 for 0,1,6th bit of 83Ch, lower 3 bytes are retrieved register information, others are set to zero
+    // Set bits 0, 1, 6 of 83Ch to 1, lower 3 bytes to retrieved register info, others to zero
     data &= 0xFFF;
     data |= 0xC2000000;
 
@@ -311,7 +313,7 @@ void PointGreyCamera::SetVideoModeAndFrameRate(const FlyCapture2::VideoMode vide
       throw std::runtime_error("Failed to set camera frame rate.\n" + description);
     }
 
-    // In case of non-FORMAT7
+    // In the case of non-FORMAT7
   } else {
     FlyCapture2::Error error = camera_->SetVideoModeAndFrameRate(video_mode, frame_rate.first);
     if (error.GetType() != FlyCapture2::PGRERROR_OK) {
@@ -335,34 +337,34 @@ void PointGreyCamera::SetFormat7Configuration(const FlyCapture2::Format7ImageSet
   uint32_t packat_size = 0;
   float percentage = 0.0;
   FlyCapture2::Format7Info format7_info;
-  // If previously set with non-Format7, retrieval of default value fails
+  // If previously set with non-Format7, retrieving default values will fail
   FlyCapture2::Error error = camera_->GetFormat7Configuration(&format7_image_settings, &packat_size, &percentage);
   if (error.GetType() != FlyCapture2::PGRERROR_OK) {
     // If not previously set with Format7
-    // API fails, but it's not a critical error, so ignore
+    // API will fail, but it's not a critical error, so ignore it
   } else {
     // If API succeeds, set the current mode retrieved from the camera
-    // If failed, call camera information retrieval API with initial value FC2_MODE_0
+    // If it fails, call the camera info retrieval API with the initial mode FC2_MODE_0
     // (FC2_MODE_0 is the mode at camera startup)
     format7_info.mode = format7_image_settings.mode;
   }
   // Retrieve camera specifications
   bool supported = false;
   error = camera_->GetFormat7Info(&format7_info, &supported);
-  // Abnormal if API fails or trying to retrieve unsupported mode setting information
+  // Abnormal if API fails or unsupported mode setting info is retrieved
   if (error.GetType() != FlyCapture2::PGRERROR_OK) {
     const std::string description(error.GetDescription());
     throw std::runtime_error("Failed to get format7 information.\n" + description);
   }
 
-  // Check if setting parameters are contained within camera specifications
-  // If setting parameters are not contained within camera specifications, make adjustments
+  // Check if the setting parameters are within the camera specifications
+  // Adjust if the setting parameters are not within the camera specifications
   uint32_t width = std::min(format7_setting.width, format7_info.maxWidth);
   width -= width % format7_info.imageHStepSize;
   uint32_t height = std::min(format7_setting.height, format7_info.maxHeight);
   height -= height % format7_info.imageVStepSize;
 
-  // Determine the maximum possible value for width and height offset
+  // Determine the maximum possible offset values for width and height
   const uint32_t max_offset_x = format7_info.maxWidth - width;
   uint32_t offset_x = std::min(format7_setting.offsetX, max_offset_x);
   offset_x -= offset_x % format7_info.offsetHStepSize;
@@ -377,7 +379,7 @@ void PointGreyCamera::SetFormat7Configuration(const FlyCapture2::Format7ImageSet
   format7_image_settings.mode = format7_setting.mode;
   format7_image_settings.pixelFormat = format7_setting.pixelFormat;
 
-  // Determine if setting information is valid for the camera
+  // Determine if the setting information is valid for the camera
   // Mainly check mode and pixel_format
   FlyCapture2::Format7PacketInfo format7_packet_info;
   error = camera_->ValidateFormat7Settings(&format7_image_settings, &supported, &format7_packet_info);
@@ -391,7 +393,7 @@ void PointGreyCamera::SetFormat7Configuration(const FlyCapture2::Format7ImageSet
     format7_image_settings.pixelFormat = FlyCapture2::PIXEL_FORMAT_RAW8;
   }
 
-  // Determine Byte Per Pixel
+  // Calculate Byte Per Pixel
   const uint32_t bits_per_pixel = FlyCapture2::Image::DetermineBitsPerPixel(format7_image_settings.pixelFormat);
 
   // Retrieve frame rate
@@ -406,7 +408,7 @@ void PointGreyCamera::SetFormat7Configuration(const FlyCapture2::Format7ImageSet
     throw std::runtime_error("Failed to read frame rate.\n" + description);
   }
 
-  // Determine Bytes Per Packet
+  // Calculate Bytes Per Packet
   const float cycles_per_second = 8000.0;
   const float frames_per_second = fps.f_value;
   const float packets_per_frame = cycles_per_second / frames_per_second;
@@ -416,7 +418,7 @@ void PointGreyCamera::SetFormat7Configuration(const FlyCapture2::Format7ImageSet
   if (format7_packet_info.maxBytesPerPacket == 0) {
     throw std::runtime_error("Division by zero. Max bytes per packet is zero.");
   }
-  // Determine PercentSpeed
+  // Calculate PercentSpeed
   const float percent_speed = 100.0 * bytes_per_packet / format7_packet_info.maxBytesPerPacket;
 
   // RAW information setting
@@ -427,12 +429,12 @@ void PointGreyCamera::SetFormat7Configuration(const FlyCapture2::Format7ImageSet
   }
 }
 
-/// @brief Set self-trigger
+/// @brief Configure self-trigger
 /// @param[in] out_io Output register address
 ///                   Specify 3 for Flea2
 ///                   Specify 1 for Chameleon
-/// @param[in] pulse_figure Self-trigger pulse emission command
-/// @exception std::invalid_argument If out_io value is incorrect
+/// @param[in] pulse_figure Self-trigger pulse command
+/// @exception std::invalid_argument If out_io value is invalid
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If setting fails
 void PointGreyCamera::SetSelfTriggerSetting(const uint32_t out_io, const uint32_t pulse_figure) {
@@ -452,7 +454,7 @@ void PointGreyCamera::SetSelfTriggerSetting(const uint32_t out_io, const uint32_
   }
 }
 
-/// @brief Set trigger mode
+/// @brief Configure trigger mode
 /// @param[in] trigger_mode Camera mode
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If setting fails
@@ -504,7 +506,7 @@ FlyCapture2::TriggerModeInfo PointGreyCamera::GetTriggerModeInfo() {
   return trigger_mode_info;
 }
 
-/// @brief Set trigger delay
+/// @brief Configure trigger delay
 /// @param[in] trigger_delay Trigger delay setting
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If setting fails
@@ -528,8 +530,8 @@ void PointGreyCamera::SetTriggerDelay(const FlyCapture2::TriggerDelay& trigger_d
   }
 }
 
-/// @brief Set camera settings
-/// @param[in] config Camera settings
+/// @brief Configure the camera
+/// @param[in] config Camera configuration
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If setting fails
 void PointGreyCamera::SetConfiguration(const FlyCapture2::FC2Config& config) {
@@ -544,11 +546,11 @@ void PointGreyCamera::SetConfiguration(const FlyCapture2::FC2Config& config) {
   }
 }
 
-/// @brief Set software trigger
+/// @brief Configure software trigger
 /// @param[in] set_switch Set software trigger if true, reset if false
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If setting fails
-/// @return bool Whether setting was successful
+/// @return bool Whether the setting was successful
 bool PointGreyCamera::SetSoftwareTrigger(const bool set_switch) {
   if (!camera_) {
     std::cerr << "Camera does not exist." << std::endl;
@@ -567,7 +569,7 @@ bool PointGreyCamera::SetSoftwareTrigger(const bool set_switch) {
   return true;
 }
 
-/// @brief Start capture
+/// @brief Start capturing
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If starting capture fails
 void PointGreyCamera::StartCapture() {
@@ -583,7 +585,7 @@ void PointGreyCamera::StartCapture() {
   is_capturing_ = true;
 }
 
-/// @brief Stop capture
+/// @brief Stop capturing
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If stopping capture fails
 void PointGreyCamera::StopCapture() {
@@ -626,7 +628,7 @@ void PointGreyCamera::StartSyncCapture(const std::vector<std::shared_ptr<PointGr
   for (const CameraPtr& camera : cameras) { camera->is_capturing_ = true; }
 }
 
-/// @brief Retrieve image
+/// @brief Retrieve an image
 /// @return Retrieved image
 /// @exception If capture fails
 /// @exception std::runtime_error If the camera pointer is null
@@ -650,10 +652,10 @@ FlyCapture2::Image PointGreyCamera::RetrieveBuffer() {
   return image;
 }
 
-/// @brief Write value to camera register
+/// @brief Write a value to the camera register
 /// @param[in] address Address to write to
 /// @param[in] value Value to write
-/// @param[in] broadcast Flag for using broadcast
+/// @param[in] broadcast Flag to use broadcast
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If writing fails
 void PointGreyCamera::WriteRegister(const uint32_t address, const uint32_t value, const bool broadcast) {
@@ -668,7 +670,7 @@ void PointGreyCamera::WriteRegister(const uint32_t address, const uint32_t value
   }
 }
 
-/// @brief Read value from camera register
+/// @brief Read a value from the camera register
 /// @param[in] address Address to read from
 /// @param[out] value Read value
 /// @exception std::runtime_error If the camera pointer is null
@@ -686,9 +688,9 @@ void PointGreyCamera::ReadRegister(const uint32_t address, uint32_t& value) {
 }
 
 /// @brief Emit PWM waveform a specified number of times
-/// @param[in] out_io Location to output waveform
-/// @param[in] number_of_pulse Number of times to output
-/// @param[in] polarity Polarity of waveform
+/// @param[in] out_io Location to output the waveform
+/// @param[in] number_of_pulse Number of pulses to output
+/// @param[in] polarity Polarity of the waveform
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If emission fails
 void PointGreyCamera::SendPwmForSelfTrigger(const uint32_t out_io,
@@ -709,7 +711,7 @@ void PointGreyCamera::SendPwmForSelfTrigger(const uint32_t out_io,
 }
 
 /// @brief Stop emitting PWM waveform
-/// @param[in] out_io Location to output waveform
+/// @param[in] out_io Location to output the waveform
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If stopping fails
 void PointGreyCamera::StopPwmForSelfTrigger(const uint32_t out_io) {
@@ -727,7 +729,7 @@ void PointGreyCamera::StopPwmForSelfTrigger(const uint32_t out_io) {
 }
 
 /// @brief (Blackfly only) Output 3.3V from GPIO
-/// @param[in] enable Output if True, stop if False
+/// @param[in] enable Output if true, stop if false
 /// @exception std::runtime_error If the camera pointer is null
 /// @exception std::runtime_error If setting fails
 void PointGreyCamera::OutputVoltage(const bool enable) {
@@ -749,7 +751,7 @@ void PointGreyCamera::OutputVoltage(const bool enable) {
   }
 }
 
-/// @brief Check if capture is being done
+/// @brief Check if capturing is in progress
 /// @return Returns true if capturing
 bool PointGreyCamera::is_capturing() {
   std::shared_lock<std::shared_mutex> read(access_);

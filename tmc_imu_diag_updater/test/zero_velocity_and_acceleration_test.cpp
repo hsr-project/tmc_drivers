@@ -75,7 +75,7 @@ INSTANTIATE_TEST_CASE_P(
         TestParam{ kThreshold + kEpsilon, { 1, Level::kOK, kName, "OK", kHardwareID } },
         TestParam{ kThreshold, { 1, Level::kError, kName, "Velocities and accelerations are zero", kHardwareID } }));
 
-// An abnormal Diag should be returned when all angular velocities and accelerations are below the threshold
+// Abnormal Diag should be returned if angular velocity and acceleration are all below the threshold
 // Phenomenon confirmed in tmc_adi_driver
 TEST_P(GetZeroVecocityAndAccelerationErrorTest, TestWithParam) {
   // Setup
@@ -94,7 +94,7 @@ TEST_P(GetZeroVecocityAndAccelerationErrorTest, TestWithParam) {
   imu_pub_->PublishPeriodically(100.0);
   diag_sub_->StartCaching();
   ASSERT_TRUE(WaitUntil(node_, diag_is_advertised_, 3.0));
-  ASSERT_TRUE(WaitUntil(node_, cache_length_greater_than_3_, 5.0));
+  ASSERT_TRUE(WaitUntil(node_, cache_length_greater_than_5_, 5.0));
   diag_sub_->StopCaching();
 
   // Verify

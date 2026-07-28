@@ -33,15 +33,15 @@ DAMAGE.
 
 namespace tmc_exxx_servo_motor_protocol {
 
-/// Class to create messages like description (namespace/name)
-/// If there are multiple, connect with ";"
+/// Class to create messages in the format (namespace/name)
+/// If there are multiple, connect them with ";"
 class MessageBuilder {
  public:
   /// When there is no namespace
   MessageBuilder() : dst_message_(""), space_("") {}
 
   /// When there is a namespace
-  /// @param [in] space Message namespace, "/" is not needed
+  /// @param [in] space Namespace of the message, "/" is not required
   explicit MessageBuilder(const std::string& space) : dst_message_(""), space_(space + "/") {}
 
   /// Destructor

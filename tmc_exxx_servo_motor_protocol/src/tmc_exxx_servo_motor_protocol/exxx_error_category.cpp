@@ -44,7 +44,7 @@ namespace tmc_exxx_servo_motor_protocol {
 namespace exxx_error_code {
 
 /// @brief Warning category of Exxx servo amplifier
-/// @c error code is @c error status of the status packet
+/// @c error code is the @c error status of the status packet
 /// @c error condition is ExxxErrorCondition
 class ExxxErrorCategoryImpl : public boost::system::error_category {
  public:
@@ -117,7 +117,7 @@ class ExxxErrorCategoryImpl : public boost::system::error_category {
 };
 
 /// @brief Warning category of Exxx servo amplifier
-/// @c error code is @c safety error status of the status packet
+/// @c error code is the @c safety error status of the status packet
 /// @c error condition is ExxxErrorCondition
 class ExxxSafetyErrorCategoryImpl : public boost::system::error_category {
  public:

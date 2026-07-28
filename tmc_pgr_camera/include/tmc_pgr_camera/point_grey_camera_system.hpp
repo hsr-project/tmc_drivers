@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Point Grey camera system
+/// @brief      Point Grey camera system
 #ifndef TMC_PGR_CAMERA_POINT_GREY_CAMERA_SYSTEM_HPP_
 #define TMC_PGR_CAMERA_POINT_GREY_CAMERA_SYSTEM_HPP_
 
@@ -70,7 +70,7 @@ class PointGreyCameraSystem {
   /// Stop capturing
   void StopCapture();
 
-  /// Get captured images
+  /// Retrieve captured images
   std::optional<std::vector<ImagePtr> > GrabImage();
 
   /// Check if the camera system is running
@@ -94,7 +94,7 @@ class PointGreyCameraSystem {
   boost::circular_buffer<std::vector<ImagePtr> > captured_images_;
   /// Configuration loading object
   std::shared_ptr<IPointGreyCameraSystemSetting> camera_system_settings_;
-  /// Flag to determine whether to terminate the capture thread
+  /// Flag to terminate the capture thread
   bool can_close_capture_thread_;
   /// Mutex
   std::shared_mutex access_;

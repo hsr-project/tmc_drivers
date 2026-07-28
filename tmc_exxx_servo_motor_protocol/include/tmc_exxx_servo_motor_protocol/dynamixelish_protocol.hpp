@@ -39,7 +39,7 @@ namespace tmc_exxx_servo_motor_protocol {
 /// Dynamixel communication protocol
 /// Similar to (http://support.robotis.com/jp/product/dynamixel/dxl_communication.htm)
 /// Interface for a protocol to read and write object dictionary.
-/// Assumes both ID and size are 16-bit.
+/// Assumes ID is 16-bit and size is also 16-bit.
 class IDynamixelishProtocol {
  public:
   typedef boost::system::error_code ErrorCode;

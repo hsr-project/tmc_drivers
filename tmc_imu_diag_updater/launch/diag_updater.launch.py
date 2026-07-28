@@ -34,7 +34,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     input_topic_name = DeclareLaunchArgument("input_topic_name", default_value="imu/data_raw")
     sampling_hz = DeclareLaunchArgument("sampling_hz", default_value="200.0")
-    com_timeout_sec = DeclareLaunchArgument("com_timeout_sec", default_value="50.0")
+    com_timeout_sec = DeclareLaunchArgument("com_timeout_sec", default_value="5.0")
     expected_frame_id = DeclareLaunchArgument("expected_frame_id", default_value="imu")
     imu_significant_threshold = DeclareLaunchArgument("imu_significant_threshold", default_value="0.00001")
     warn_hz = DeclareLaunchArgument("warn_hz", default_value="80.0")

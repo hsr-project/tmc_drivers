@@ -1,7 +1,7 @@
 <package format="3">
   <name>tmc_diag_updater_common</name>
-  <version>2.1.1</version>
-  <description>Common modules to update diagnostics</description>
+  <version>3.0.0</version>
+  <description>Common modules to update daignostics</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
 
   <author email="fukukazu_kawata_zb@mail.toyota.co.jp">Fukukazu Kawata</author>

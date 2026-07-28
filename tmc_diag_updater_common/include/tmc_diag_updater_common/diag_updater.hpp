@@ -39,10 +39,10 @@ DAMAGE.
 
 namespace tmc_diag_updater_common {
 
-// Class for topic subscription, verification, and diag update
+// A class for topic subscription, validation, and diag updates
 //
-// Topic reception events and verification events are independent
-// Needed to have an overview to verify communication quality of topics, etc.
+// Topic reception events and validation events are independent
+// Needed to take an overview to verify communication quality of topics, etc.
 template <class MsgPtr, class MsgType>
 class DiagUpdater {
  public:
@@ -66,8 +66,8 @@ class DiagUpdater {
     diag_updater_->setHardwareID(hardware_id);
     diag_updater_->add(hardware_id + " topic status", this, &DiagUpdater::UpdateDiag);
 
-    // Creating a verifier
-    // Parse rosparam to generate multiple verifiers
+    // Creating a validator
+    // Parse rosparam to generate multiple validators
     std::vector<std::string> verifiers_list =
         node_->declare_parameter<std::vector<std::string>>("verifiers_list", std::vector<std::string>({}));
     if (verifiers_list.size() == 0) {
@@ -79,11 +79,11 @@ class DiagUpdater {
     }
     verifier_summaries_.resize(verifiers_list.size());
 
-    // It seems better to have the topic name and hardwareid together
+    // It seems better to combine the topic name with the hardware ID
     sub_ = node_->create_subscription<MsgType>(hardware_id, rclcpp::SensorDataQoS(),
                                                std::bind(&DiagUpdater::UpdateTopic, this, std::placeholders::_1));
 
-    // Set verification event on timer
+    // Set validation events on the timer
     const double sampling_hz = node_->declare_parameter<double>("sampling_hz", 200.0);
     if (sampling_hz <= std::numeric_limits<double>::epsilon()) {
       throw std::runtime_error("Specify positive value as sampling Hz");
@@ -106,14 +106,14 @@ class DiagUpdater {
     dst_stat.summary(initial_summary.first, initial_summary.second);
 
     for (auto verifier_summary : verifier_summaries_) {
-      // Even though diagnostics 6d7951c allows messages to be merged when OK, we want to avoid it, so we add avoidance code
+      // Although diagnostics 6d7951c merges messages even when OK, added workaround code to avoid this
       if (verifier_summary.first == diagnostic_msgs::msg::DiagnosticStatus::OK) {
         continue;
       }
       // Priority of levels is ERROR > WARN > OK, messages are in registration order
       dst_stat.mergeSummary(verifier_summary.first, verifier_summary.second);
     }
-    // Add details of verification results, etc.
+    // Added details of validation results, etc.
     for (auto verifier : verifiers_) {
       verifier->AddValues(dst_stat);
     }
@@ -130,14 +130,14 @@ class DiagUpdater {
   std::shared_ptr<diagnostic_updater::Updater> diag_updater_;
   typename rclcpp::Subscription<MsgType>::SharedPtr sub_;
 
-  // Verification data buffer
+  // Validation data buffer
   MsgPtr data_;
 
-  // Topic data verifier and verification results
+  // Topic data validator and validation results
   std::vector<typename verifier::Interface<MsgPtr>::SharedPtr> verifiers_;
   Summaries verifier_summaries_;
 
-  // Issue periodic event for Diag update
+  // Diag update periodic event issuance
   rclcpp::TimerBase::SharedPtr cyclic_publish_timer_;
   rclcpp::Node::SharedPtr node_;
 };

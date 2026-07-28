@@ -43,23 +43,23 @@ DAMAGE.
 
 namespace {
 
-// Parameter name for obtaining the frame ID
+// Parameter name to obtain the frame ID
 const char* const kFrameIdParamName = "frame_id";
 // Default frame ID
 const char* const kDefaultFrameId = "pgr_stereo_camera";
 
-// Parameter name for obtaining the number of cameras to use
+// Parameter name to obtain the number of cameras to use
 const char* const kCameraNumParamName = "camera_num";
 
 // Image topic parameter name
 const char* const kImageTopicNames = "image_topic_names";
 
-// Parameter name for obtaining the file name describing camera settings
+// Parameter name to obtain the file name describing the camera settings
 const char* const kCameraSettingFilePathParamName = "camera_setting_file_path";
 
-// Parameter name for obtaining the flag to start capture at launch
+// Parameter name to obtain the flag for starting capture at launch
 const char* const kAutoCaptureStartParamName = "auto_capture_start";
-// Default flag to start capture at launch
+// Default flag for starting capture at launch
 const bool kAutoCaptureStart = true;
 
 // Parameter name for camera settings
@@ -68,33 +68,33 @@ const char* const kSettingParamName = "setting";
 // Parameter name for camera property settings
 const char* const kPropertyParamName = "property";
 
-// Parameter name for obtaining the name of the service to control the camera
+// Parameter name to obtain the service name for controlling the camera
 const char* const kControlCamera = "control_camera";
 
 // Base name of the camera system plugin
 const char* const kPluginBaseName = "tmc_pgr_camera::ICameraSystemPluginBase";
 
-// ROS parameter name for camera ID
+// ROS parameter name for the camera ID
 const char* const kCameraParamName = "camera";
 
-// Written within export in package.xml
-// ROS parameter name for obtaining the tag name containing the plugin to be used as a camera
+// Specified within the export section of package.xml
+// ROS parameter name to obtain the tag name containing the plugin to be used as a camera
 const char* const kPluginExportTagNameParamName = "plugin_export_tag_name";
 
-// ROS parameter name for obtaining the name of the camera plugin to use
+// ROS parameter name to obtain the name of the camera plugin to use
 const char* const kPluginNameParamName = "plugin_name";
 
-// Leading key of parameter group including brightness, etc. in Yaml
+// Top-level key for parameters such as brightness in Yaml
 const char* const kYamlKeyParameter = "parameter";
 
-// Key for camera plugin name in Yaml
+// Key for the camera plugin name in Yaml
 const char* const kYamlKeyPlugin = "plugin";
 
-// Parameter name for the number of times to ignore acquisition failures of several frames immediately after launch
+// Parameter name for the number of initial frame acquisition failures to ignore after startup
 const char* const kIgnoreInitialGrabErrorThresholdParameterName = "ignore_initial_grab_error_threshold";
 
-// Number of times to ignore acquisition failures of several frames immediately after launch
-// The threshold of 20 is a value that does not issue a warning when executed between 1 and 15Hz, without stress, and with stress --cpu 8
+// Number of initial frame acquisition failures to ignore after startup
+// The threshold value of 20 is a value that does not trigger warnings when executed between 1 and 15Hz, both without stress and with stress --cpu 8
 const int kIgnoreInitialGrabErrorThreshold = 20;
 
 // trigger_mode mode1 (Bulb shutter mode)
@@ -118,7 +118,7 @@ CameraNodelet::CameraNodelet(const rclcpp::NodeOptions& options)
 }
 
 /// @brief Destructor
-/// @note Wait until the capture thread finishes
+/// @note Waits until the capture thread terminates
 CameraNodelet::~CameraNodelet() {
   try {
     {
@@ -131,17 +131,17 @@ CameraNodelet::~CameraNodelet() {
   }
 }
 
-/// @brief Initialize Nodelet
-/// @exception std::runtime_error When the camera number setting is not 1 or 2
-/// @exception std::runtime_error When unable to load the camera settings file
+/// @brief Initializes the Nodelet
+/// @exception std::runtime_error If the number of cameras is not set to 1 or 2
+/// @exception std::runtime_error If the camera settings file cannot be loaded
 void CameraNodelet::onInit() {
-  // Obtaining frame ID
+  // Obtaining the frame ID
   std::string frame_id = this->declare_parameter(kFrameIdParamName, kDefaultFrameId);
 
-  // Camera settings class to be loaded by plugin
+  // Camera settings class to be loaded into the plugin
   camera_setting_.reset(new RosParameterPointGreyCameraSystemSetting(std::shared_ptr<CameraNodelet>(this)));
 
-  // Read the camera serial number (ID) and upload it to the parameter server
+  // Reads the camera's serial number (ID) and uploads it to the parameter server
   std::shared_ptr<YamlPointGreyCameraSystemSetting> camera_setting_from_yaml;
   std::string camera_setting_file_path =
       this->declare_parameter(kCameraSettingFilePathParamName, std::string());
@@ -152,14 +152,14 @@ void CameraNodelet::onInit() {
     for (std::vector<uint32_t>::const_iterator it = camera_ids_uint.begin(); it != camera_ids_uint.end(); ++it) {
       camera_ids.push_back(static_cast<int>(*it));
     }
-    // Register to parameter server
+    // Register to the parameter server
     this->declare_parameter(std::string(kCameraParamName), camera_ids);
   } catch (const std::runtime_error& e) {
     RCLCPP_ERROR(this->get_logger(), "%s", e.what());
     throw;
   }
 
-  // Register the distributor of camera images
+  // Register the camera image publisher
   if (camera_ids.size() <= 0) {
     const std::string error_description("Invalid_camera num.");
     RCLCPP_ERROR(this->get_logger(), "%s", error_description.c_str());
@@ -183,8 +183,8 @@ void CameraNodelet::onInit() {
   camera_images_publisher_.reset(
       new CameraImagesPublisher(std::shared_ptr<CameraNodelet>(this), image_topic_names, frame_id));
 
-  // The method of setting parameters other than serial using the previously used yml files (such as stereo_pgr_camera.yml) is abolished.
-  // Notify the user if parameters other than serial may exist.
+  // The method of setting parameters other than serial using the previously used yml files (e.g., stereo_pgr_camera.yml) is deprecated.
+  // Notify the user if parameters other than serial exist.
   // Expand ~ using $HOME
   wordexp_t expanded_result;
   ::wordexp(camera_setting_file_path.c_str(), &expanded_result, 0);
@@ -192,7 +192,7 @@ void CameraNodelet::onInit() {
   ::wordfree(&expanded_result);
   try {
     const YAML::Node setting_root = YAML::LoadFile(camera_setting_file_full_path);
-    // Whether the key of the abolished setting exists
+    // Check if the key for the deprecated setting exists
     const YAML::Node& parameter = setting_root[kYamlKeyParameter];
     const YAML::Node& plugin = setting_root[kYamlKeyPlugin];
     if (parameter || plugin) {
@@ -216,9 +216,9 @@ void CameraNodelet::onInit() {
     throw;
   }
 
-  // In ROS 2, get_parameter cannot be performed unless declare_parameter is explicitly done.
+  // In ROS 2, get_parameter cannot be performed without explicitly declaring the parameter using declare_parameter.
   // Declare all parameters specified in capture.launch here.
-  // Use the initial value from capture.launch.
+  // Use the initial values from capture.launch.
   this->declare_parameter("property.brightness.on_off", true);
   this->declare_parameter("property.brightness.abs_value", 0.0);
   this->declare_parameter("property.brightness.one_push", true);
@@ -270,7 +270,7 @@ void CameraNodelet::onInit() {
   this->declare_parameter("change_rgb_flag", true);
   this->declare_parameter("output_voltage", false);
 
-  // Creation and launch of camera object
+  // Creation and startup of the camera object
   std::string export_name =
       this->declare_parameter(kPluginExportTagNameParamName, "tmc_pgr_camera");
   std::string plugin_name =
@@ -284,7 +284,7 @@ void CameraNodelet::onInit() {
     throw;
   }
 
-  // Confirm whether to start capture immediately upon capture thread launch
+  // Check whether to start capture immediately when the capture thread starts
   bool auto_capture_start =
       this->declare_parameter(kAutoCaptureStartParamName, kAutoCaptureStart);
   if (auto_capture_start) {
@@ -296,7 +296,7 @@ void CameraNodelet::onInit() {
       kControlCamera,
       std::bind(&CameraNodelet::ControlCameraCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-  // Launch capture thread
+  // Start the capture thread
   capture_thread_.reset(new std::thread(std::bind(&CameraNodelet::CaptureThread, this)));
 
   const std::string& ns = std::string(kPropertyParamName) + std::string(".");
@@ -341,7 +341,7 @@ void CameraNodelet::onInit() {
 }
 
 /// @brief Capture thread
-/// @exception std::runtime_error When the pointer of the camera system is empty
+/// @exception std::runtime_error If the camera system pointer is null
 void CameraNodelet::CaptureThread() {
   if (!camera_) {
     throw std::runtime_error("Camera system does not exist.");
@@ -381,9 +381,9 @@ void CameraNodelet::CaptureThread() {
 
 /// @brief Receive capture start/stop commands from HMI
 /// @param[in] req Capture start/stop command
-/// @param[out] res Success/failure flag of capture start/stop command
-/// @return Flag indicating whether the callback function was successful (only returns true)
-/// @exception std::runtime_error When the pointer of the camera system is empty
+/// @param[out] res Success/failure flag for the capture start/stop command
+/// @return Flag indicating whether the callback function succeeded (always returns true)
+/// @exception std::runtime_error If the camera system pointer is null
 bool CameraNodelet::ControlCameraCallback(
     const std::shared_ptr<tmc_vision_msgs::srv::ControlCamera::Request> req,
     std::shared_ptr<tmc_vision_msgs::srv::ControlCamera::Response> res) {
@@ -392,7 +392,7 @@ bool CameraNodelet::ControlCameraCallback(
   }
   res->is_success = false;
 
-  // Branch depending on whether the command is start or stop
+  // Branch based on whether the command is start or stop
   if (req->capture && !camera_->IsCapturing()) {
     // Start image acquisition
     camera_->StartCapture();
@@ -408,7 +408,7 @@ bool CameraNodelet::ControlCameraCallback(
   return true;
 }
 
-/// @brief Convert camera settings from parameter to YAML and wait for setting changes
+/// @brief Convert camera settings from parameters to YAML and wait for configuration changes
 void CameraNodelet::ChangeCameraProperties() {
   const std::string& ns = std::string(kPropertyParamName) + std::string(".");
 
@@ -450,7 +450,7 @@ void CameraNodelet::ChangeCameraProperties() {
   camera_property["type"] = std::string("shutter");
   camera_property["onePush"] = this->get_parameter(ns + std::string("shutter_one_push")).get_value<bool>();
   this->set_parameter(rclcpp::Parameter(ns + std::string("shutter_one_push"), false));
-  // When trigger_mode is set to mode 1 (Bulb Shutter mode), the automatic mode of the shutter cannot be used
+  // Setting mode to 1 (Bulb Shutter mode) in trigger_mode disables the automatic shutter mode
   if (this->get_parameter(ns + std::string("trigger_mode_mode")).get_value<int64_t>() == kTriggerMode1) {
     this->set_parameter(rclcpp::Parameter(ns + std::string("shutter_auto_manual_mode"), false));
   }
@@ -487,7 +487,7 @@ void CameraNodelet::ChangeCameraProperties() {
   camera_property.reset();
 
   // frame_rate
-  // When trigger_mode is set to on (1), it becomes asynchronous trigger mode, so frame_rate cannot be set.
+  // Setting on_off to on (1) in trigger_mode enables asynchronous trigger mode, making frame_rate settings unavailable.
   if (this->get_parameter(ns + std::string("trigger_mode_on_off")).get_value<bool>()) {
     this->set_parameter(rclcpp::Parameter(ns + std::string("frame_rate_on_off"), false));
     this->set_parameter(rclcpp::Parameter(ns + std::string("frame_rate_auto_manual_mode"), false));
@@ -507,7 +507,7 @@ void CameraNodelet::ChangeCameraProperties() {
 rcl_interfaces::msg::SetParametersResult CameraNodelet::SetParameterCallback(
   const std::vector<rclcpp::Parameter>& params) {
     const std::string& ns = std::string(kPropertyParamName) + std::string(".");
-    // NOTE: Search due to too many target parameters.
+    // NOTE: Search due to the large number of target parameters.
     std::vector<std::string> property_param_names = {
       ns + std::string("brightness_abs_value"),
       ns + std::string("auto_exposure_on_off"),
@@ -537,9 +537,9 @@ rcl_interfaces::msg::SetParametersResult CameraNodelet::SetParameterCallback(
 
     // NOTE: Some parameters may be rewritten within the setting function,
     //  which may cause this callback to be called again.
-    //  Avoid infinite loops due to multiple calls.
+    //  Avoid infinite loops caused by multiple calls.
 
-    // Do not call settings if onePush is rewritten from true to false.
+    // Do not call the setting if onePush is rewritten from true to false.
     std::vector<std::string> property_one_push_names = {
       ns + std::string("auto_exposure_one_push"),
       ns + std::string("white_balance_one_push"),
@@ -548,7 +548,7 @@ rcl_interfaces::msg::SetParametersResult CameraNodelet::SetParameterCallback(
     };
 
     for (const auto& param : params) {
-      // Normally, call settings when params related to property change.
+      // Normally, call the setting when params related to property change.
       if (std::find(property_param_names.begin(),
                     property_param_names.end(),
                     param.get_name())
@@ -558,16 +558,16 @@ rcl_interfaces::msg::SetParametersResult CameraNodelet::SetParameterCallback(
                            property_one_push_names.end(),
                            param.get_name())
                  != property_one_push_names.end()) {
-        // Call settings only when onePush is true.
+        // Call the setting only when onePush is true.
         property_changed_ = (property_changed_ || param.get_value<bool>());
       } else if (param.get_name() == ns + std::string("shutter_auto_manual_mode")) {
-        // Those that can be rewritten depending on the state of other parameters
-        // When trigger_mode is mode 1 (Bulb Shutter mode), shutter_auto_manual_mode is rewritten
+        // Parameters that can be rewritten depending on the state of other parameters
+        // When mode is 1 (Bulb Shutter mode) in trigger_mode, shutter_auto_manual_mode is rewritten
         property_changed_ = (property_changed_ ||
             this->get_parameter(ns + std::string("trigger_mode_mode")).get_value<int64_t>() != kTriggerMode1);
       } else if (param.get_name() == ns + std::string("frame_rate_on_off") ||
                  param.get_name() == ns + std::string("frame_rate_auto_manual_mode")) {
-        // When trigger_mode is on (1), frame_rate_on_off, frame_rate_auto_manual_mode are rewritten
+        // When on_off is on (1) in trigger_mode, frame_rate_on_off and frame_rate_auto_manual_mode are rewritten
         property_changed_ = (property_changed_ ||
             !this->get_parameter(ns + std::string("trigger_mode_on_off")).get_value<bool>());
       }
