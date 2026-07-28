@@ -2,6 +2,15 @@
 Changelog for package tmc_pgr_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.0 (2026-06-29)
+-------------------
+* Migration to ROS2 jazzy
+* Contributors: Hiroaki Yaguchi, Shigeo Tsuduki, Yuki Hidaka, Ryu Nishimori, Keisuke Takeshita
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package tmc_pgr_camera
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 2.1.1 (2025-12-04)
 -------------------
 * Correct the definition of the sign  for battery current.

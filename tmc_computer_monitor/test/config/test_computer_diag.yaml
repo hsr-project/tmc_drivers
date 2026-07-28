@@ -1,0 +1,135 @@
+CPU:
+  type: MpstatCommandMonitor
+  publish_rate: 0.2
+  items:
+    - User
+    - Nice
+    - Sys
+    - IOwait
+    - IRQ
+    - SoftIRQ
+    - Steal
+    - Guest
+    - Gnice
+    - Idle
+ProcessCpu:
+  type: PsCommandMonitor
+  publish_rate: 0.2
+  sort_key: UseCpuRate
+  num_to_disp: 5
+  items:
+    - UserID
+    - ProcessID
+    - UseCpuRate
+    - UseMemoryRate
+    - UseVirtualMemorySize
+    - UsePhisicalMemorySize
+    - TypeOfTerminal
+    - ProcessStatus
+    - ProcessStartTime
+    - ExecutionTime
+    - ExecutionCommand
+ProcessMemory:
+  type: PsCommandMonitor
+  publish_rate: 0.2
+  sort_key: UseMemoryRate
+  num_to_disp: 5
+  items:
+    - UserID
+    - ProcessID
+    - UseCpuRate
+    - UseMemoryRate
+    - UseVirtualMemorySize
+    - UsePhisicalMemorySize
+    - TypeOfTerminal
+    - ProcessStatus
+    - ProcessStartTime
+    - ExecutionTime
+    - ExecutionCommand
+Memory:
+  type: MeminfoCommandMonitor
+  publish_rate: 0.5
+  items:
+    - MemTotal
+    - MemFree
+    - MemAvailable
+Sensors:
+  type: SensorsCommandMonitor
+  publish_rate: 0.1
+  items:
+    - temp
+    - in
+    - fan
+Disk:
+  type: DfCommandMonitor
+  publish_rate: 0.1
+  offset: 6.0
+  target:
+    - "/"
+  items:
+    - Filesystem
+    - Size
+    - Used
+    - Avail
+    - Use%
+Network:
+  type: NetstatCommandMonitor
+  publish_rate: 0.1
+  target:
+    - wlan0
+    - wlp3s0
+  items:
+    - Interface
+    - MTU
+    - ReceiveOK
+    - ReceiveERR
+    - ReceiveDRP
+    - ReceiveOVR
+    - SendOK
+    - SendERR
+    - SendDRP
+    - SendOVR
+    - Flg
+USB:
+  type: LsusbCommandMonitor
+  publish_rate: 0.1
+Wireless:
+  type: IwconfigCommandMonitor
+  publish_rate: 0.2
+  items:
+    - IEEE
+    - ESSID
+    - Nickname
+    - Mode
+    - Frequency
+    - AccessPointMac
+    - BitRate
+    - TxPower
+    - Sensitivity
+    - RetryMinLimit
+    - RTSThr
+    - FragmentThr
+    - PowerManagement
+    - LinkQuality
+    - SignalLevel
+    - NoiseLevel
+    - RxInvalidNwid
+    - InvalidCrypt
+    - RxInvalidFrag
+    - TxExcessiveRetries
+    - InvalidMisc
+    - MissedBeacon
+File:
+  type: FileMonitor
+  publish_rate: 0.0
+  offset: 2.0
+  files:
+    File:
+      - path: "test/camera_config.yaml"
+        notcontain: ["test"]
+ExternalModule:
+  type: ExternalModuleMonitor
+  publish_rate: 1.0
+  device: /dev/test
+  hardware_id: ExternalDevice
+  module: external_module
